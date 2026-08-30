@@ -19,9 +19,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DeleteOutline
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -43,14 +47,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whitenoisequran.domain.model.BulkDownloadProgress
+import com.whitenoisequran.domain.model.DownloadState
 import com.whitenoisequran.domain.model.Surah
 import com.whitenoisequran.ui.theme.AppTheme
 import com.whitenoisequran.ui.theme.ArabicItemStyle
 import com.whitenoisequran.ui.theme.CardDark
-import com.whitenoisequran.ui.theme.GoldGlow
+import com.whitenoisequran.ui.theme.ErrorRed
 import com.whitenoisequran.ui.theme.GoldLight
 import com.whitenoisequran.ui.theme.GoldPrimary
+import com.whitenoisequran.ui.theme.SuccessGreen
 import com.whitenoisequran.ui.theme.SurfaceDark
+import com.whitenoisequran.ui.theme.TealLight
 import com.whitenoisequran.ui.theme.TextMuted
 import com.whitenoisequran.ui.theme.TextPrimary
 import com.whitenoisequran.ui.theme.TextSecondary
@@ -60,7 +68,13 @@ import com.whitenoisequran.ui.theme.TextSecondary
 fun SurahListSheet(
     surahs: List<Surah>,
     currentSurah: Surah?,
+    isLoading: Boolean = false,
+    downloadProgress: BulkDownloadProgress = BulkDownloadProgress(),
     onSelectSurah: (Surah) -> Unit,
+    onDownloadSingleSurah: (Surah) -> Unit = {},
+    onDeleteSurahAudio: (Surah) -> Unit = {},
+    onDownloadAll: () -> Unit = {},
+    onDeleteAllAudio: () -> Unit = {},
     onDismiss: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
@@ -78,6 +92,10 @@ fun SurahListSheet(
                 it.translationId.lowercase().contains(query)
             }
         }
+    }
+
+    val downloadedCount = remember(surahs) {
+        surahs.count { it.downloadState == DownloadState.DONE }
     }
 
     ModalBottomSheet(
@@ -98,22 +116,29 @@ fun SurahListSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.88f)
+                .fillMaxHeight(0.92f)
                 .padding(horizontal = 20.dp)
         ) {
             // Header: Title + Close
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 4.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = "Select Surah",
-                    style = AppTheme.typography.headlineMedium,
-                    color = TextPrimary
-                )
+                Column {
+                    Text(
+                        text = "Surah Index",
+                        style = AppTheme.typography.headlineMedium,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "$downloadedCount / 114 Downloaded for Offline",
+                        style = AppTheme.typography.bodySmall,
+                        color = if (downloadedCount > 0) SuccessGreen else TextMuted
+                    )
+                }
 
                 IconButton(onClick = onDismiss) {
                     Icon(
@@ -121,6 +146,65 @@ fun SurahListSheet(
                         contentDescription = "Close",
                         tint = TextSecondary
                     )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Storage & Bulk Download Action Row
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(CardDark)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Download All Button
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(10.dp))
+                        .clickable { onDownloadAll() }
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Download,
+                        contentDescription = "Download All",
+                        tint = if (downloadProgress.isRunning) TealLight else GoldPrimary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = if (downloadProgress.isRunning) "Downloading (${downloadProgress.completedCount}/114)" else "Download All",
+                        style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                        color = if (downloadProgress.isRunning) TealLight else GoldPrimary
+                    )
+                }
+
+                // Delete All (Free Storage) Button
+                if (downloadedCount > 0) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { onDeleteAllAudio() }
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.DeleteOutline,
+                            contentDescription = "Delete All Audio",
+                            tint = ErrorRed.copy(alpha = 0.85f),
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Free Space",
+                            style = AppTheme.typography.labelSmall,
+                            color = ErrorRed.copy(alpha = 0.85f)
+                        )
+                    }
                 }
             }
 
@@ -158,35 +242,62 @@ fun SurahListSheet(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
 
-            // Surah Count Subtitle
-            Text(
-                text = "${filteredSurahs.size} Surahs",
-                style = AppTheme.typography.labelMedium,
-                color = TextMuted,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
+            // Loading State
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        CircularProgressIndicator(
+                            color = GoldPrimary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Text(
+                            text = "Loading Surah audio files…",
+                            style = AppTheme.typography.bodyMedium,
+                            color = TextSecondary
+                        )
+                    }
+                }
+            } else {
+                // Surah Count
+                Text(
+                    text = "${filteredSurahs.size} Surahs",
+                    style = AppTheme.typography.labelMedium,
+                    color = TextMuted,
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
 
-            // Surah List
-            LazyColumn(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                items(
-                    items = filteredSurahs,
-                    key = { it.number }
-                ) { surah ->
-                    val isPlaying = currentSurah?.number == surah.number
+                // Surah List
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(
+                        items = filteredSurahs,
+                        key = { it.number }
+                    ) { surah ->
+                        val isPlaying = currentSurah?.number == surah.number
 
-                    SurahListItem(
-                        surah = surah,
-                        isPlaying = isPlaying,
-                        onClick = {
-                            onSelectSurah(surah)
-                            onDismiss()
-                        }
-                    )
+                        SurahListItem(
+                            surah = surah,
+                            isPlaying = isPlaying,
+                            onClick = {
+                                onSelectSurah(surah)
+                                onDismiss()
+                            },
+                            onDownload = { onDownloadSingleSurah(surah) },
+                            onDelete = { onDeleteSurahAudio(surah) }
+                        )
+                    }
                 }
             }
         }
@@ -197,7 +308,9 @@ fun SurahListSheet(
 private fun SurahListItem(
     surah: Surah,
     isPlaying: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onDownload: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -209,68 +322,130 @@ private fun SurahListItem(
                 color = if (isPlaying) GoldPrimary.copy(alpha = 0.4f) else Color.Transparent,
                 shape = RoundedCornerShape(14.dp)
             )
-            .clickable { onClick() }
-            .padding(horizontal = 12.dp, vertical = 12.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Left: Number Badge
-            Box(
+            // Main clickable body (select Surah)
+            Row(
                 modifier = Modifier
-                    .size(36.dp)
+                    .weight(1f)
                     .clip(RoundedCornerShape(10.dp))
-                    .background(if (isPlaying) GoldPrimary else CardDark)
-                    .border(
-                        1.dp,
-                        if (isPlaying) GoldPrimary else Color.White.copy(alpha = 0.08f),
-                        RoundedCornerShape(10.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                    .clickable { onClick() }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                if (isPlaying) {
-                    Icon(
-                        imageVector = Icons.Default.GraphicEq,
-                        contentDescription = "Playing",
-                        tint = SurfaceDark,
-                        modifier = Modifier.size(18.dp)
-                    )
-                } else {
+                // Left: Number Badge
+                Box(
+                    modifier = Modifier
+                        .size(34.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(if (isPlaying) GoldPrimary else CardDark)
+                        .border(
+                            1.dp,
+                            if (isPlaying) GoldPrimary else Color.White.copy(alpha = 0.08f),
+                            RoundedCornerShape(10.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isPlaying) {
+                        Icon(
+                            imageVector = Icons.Default.GraphicEq,
+                            contentDescription = "Playing",
+                            tint = SurfaceDark,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "${surah.number}",
+                            style = AppTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = GoldPrimary
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                // Center: Latin Name & Ayat Count
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
                     Text(
-                        text = "${surah.number}",
-                        style = AppTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = GoldPrimary
+                        text = surah.nameLatin,
+                        style = AppTheme.typography.titleMedium.copy(fontSize = 15.sp),
+                        color = if (isPlaying) GoldLight else TextPrimary
+                    )
+                    Text(
+                        text = "${surah.numberOfAyah} Ayat · ${surah.translationId}",
+                        style = AppTheme.typography.bodySmall.copy(fontSize = 12.sp),
+                        color = TextMuted
                     )
                 }
-            }
 
-            Spacer(modifier = Modifier.width(14.dp))
+                Spacer(modifier = Modifier.width(8.dp))
 
-            // Center: Latin Name & Ayat Count
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
+                // Arabic Scripture Name
                 Text(
-                    text = surah.nameLatin,
-                    style = AppTheme.typography.titleMedium,
+                    text = surah.nameArabic,
+                    style = ArabicItemStyle.copy(fontSize = 18.sp),
                     color = if (isPlaying) GoldLight else TextPrimary
                 )
-                Text(
-                    text = "${surah.numberOfAyah} Ayat · ${surah.translationId}",
-                    style = AppTheme.typography.bodySmall,
-                    color = TextMuted
-                )
             }
 
-            // Right: Arabic Scripture Name
-            Text(
-                text = surah.nameArabic,
-                style = ArabicItemStyle.copy(fontSize = 20.sp),
-                color = if (isPlaying) GoldLight else TextPrimary
-            )
+            Spacer(modifier = Modifier.width(10.dp))
+
+            // Right: Download Status Icon & Actions (completely independent click)
+            when (surah.downloadState) {
+                DownloadState.DONE -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.CheckCircle,
+                            contentDescription = "Downloaded",
+                            tint = SuccessGreen,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        IconButton(
+                            onClick = onDelete,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DeleteOutline,
+                                contentDescription = "Delete from storage",
+                                tint = TextMuted,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+                }
+
+                DownloadState.DOWNLOADING -> {
+                    CircularProgressIndicator(
+                        color = TealLight,
+                        strokeWidth = 2.dp,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .size(18.dp)
+                    )
+                }
+
+                else -> {
+                    IconButton(
+                        onClick = onDownload,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = "Download Surah",
+                            tint = TextSecondary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }

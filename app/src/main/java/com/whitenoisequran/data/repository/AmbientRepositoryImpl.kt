@@ -4,8 +4,11 @@ import com.whitenoisequran.data.local.dao.AmbientSoundDao
 import com.whitenoisequran.data.local.entity.AmbientSoundEntity
 import com.whitenoisequran.domain.model.AmbientSound
 import com.whitenoisequran.domain.repository.AmbientRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,6 +16,13 @@ import javax.inject.Singleton
 class AmbientRepositoryImpl @Inject constructor(
     private val ambientSoundDao: AmbientSoundDao
 ) : AmbientRepository {
+
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            seedIfEmpty()
+            ambientSoundDao.disableAll()
+        }
+    }
 
     override fun getAmbientSoundsFlow(): Flow<List<AmbientSound>> {
         return ambientSoundDao.getAllSounds().map { entities ->
@@ -40,7 +50,7 @@ class AmbientRepositoryImpl @Inject constructor(
 
     private suspend fun seedIfEmpty() {
         if (ambientSoundDao.getSoundCount() < AmbientSound.DefaultSounds.size) {
-            val entities = AmbientSound.DefaultSounds.map { it.toEntity() }
+            val entities = AmbientSound.DefaultSounds.map { it.toEntity().copy(isEnabled = false) }
             ambientSoundDao.insertSounds(entities)
         }
     }

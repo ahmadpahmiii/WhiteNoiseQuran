@@ -4,8 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitenoisequran.data.preferences.AppPreferences
 import com.whitenoisequran.domain.model.AmbientSound
-import com.whitenoisequran.domain.model.Reciter
 import com.whitenoisequran.domain.model.Surah
+import com.whitenoisequran.domain.repository.DownloadRepository
 import com.whitenoisequran.domain.repository.QuranRepository
 import com.whitenoisequran.domain.usecase.ManageAmbientSoundsUseCase
 import com.whitenoisequran.service.AmbientSoundMixer
@@ -21,6 +21,7 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val quranRepository: QuranRepository,
+    private val downloadRepository: DownloadRepository,
     private val manageAmbientSoundsUseCase: ManageAmbientSoundsUseCase,
     val audioPlayerManager: AudioPlayerManager,
     private val ambientSoundMixer: AmbientSoundMixer,
@@ -29,29 +30,45 @@ class MainViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(
         MainUiState(
-            ambientSounds = AmbientSound.DefaultSounds
+            ambientSounds = AmbientSound.DefaultSounds,
+            isLoadingSurahs = true
         )
     )
     val uiState: StateFlow<MainUiState> = _uiState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            manageAmbientSoundsUseCase.resetAll()
+        }
         loadData()
         observePlayerState()
     }
 
     private fun loadData() {
         viewModelScope.launch {
+            _uiState.update { it.copy(isLoadingSurahs = true) }
             val reciter = quranRepository.getSelectedReciter()
             _uiState.update { it.copy(currentReciter = reciter) }
 
-            quranRepository.getSurahsFlow(reciter.id).collect { surahs ->
-                _uiState.update { current ->
-                    current.copy(
-                        surahs = surahs,
-                        currentSurah = current.currentSurah ?: surahs.firstOrNull()
-                    )
+            // Observe Surahs
+            launch {
+                quranRepository.getSurahsFlow(reciter.id).collect { surahs ->
+                    _uiState.update { current ->
+                        current.copy(
+                            surahs = surahs,
+                            currentSurah = current.currentSurah ?: surahs.firstOrNull(),
+                            isLoadingSurahs = false
+                        )
+                    }
+                    audioPlayerManager.updatePlaylist(surahs, reciter)
                 }
-                audioPlayerManager.updatePlaylist(surahs, reciter)
+            }
+
+            // Observe Download Progress
+            launch {
+                downloadRepository.getDownloadProgressFlow(reciter.id).collect { progress ->
+                    _uiState.update { it.copy(downloadProgress = progress) }
+                }
             }
         }
 
@@ -94,8 +111,8 @@ class MainViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            audioPlayerManager.isShuffle.collect { shuffle ->
-                _uiState.update { it.copy(isShuffle = shuffle) }
+            audioPlayerManager.quranVolume.collect { vol ->
+                _uiState.update { it.copy(quranVolume = vol) }
             }
         }
 
@@ -140,12 +157,40 @@ class MainViewModel @Inject constructor(
         audioPlayerManager.seekTo(positionMs)
     }
 
-    fun onToggleShuffle() {
-        audioPlayerManager.toggleShuffle()
-    }
-
     fun onSelectSurah(surah: Surah) {
         audioPlayerManager.playSurah(surah)
+    }
+
+    fun onQuranVolumeChange(volume: Float) {
+        audioPlayerManager.setQuranVolume(volume)
+    }
+
+    fun onDownloadSingleSurah(surah: Surah) {
+        val reciter = uiState.value.currentReciter ?: return
+        viewModelScope.launch {
+            downloadRepository.downloadSingleSurah(surah.number, reciter.id, reciter.slug)
+        }
+    }
+
+    fun onDeleteSurahAudio(surah: Surah) {
+        val reciter = uiState.value.currentReciter ?: return
+        viewModelScope.launch {
+            downloadRepository.deleteSurahAudio(surah.number, reciter.id, reciter.slug)
+        }
+    }
+
+    fun onDownloadAllSurahs() {
+        val reciter = uiState.value.currentReciter ?: return
+        viewModelScope.launch {
+            downloadRepository.startBulkDownload(reciter.id, reciter.slug)
+        }
+    }
+
+    fun onDeleteAllAudio() {
+        val reciter = uiState.value.currentReciter ?: return
+        viewModelScope.launch {
+            downloadRepository.deleteAllAudio(reciter.id, reciter.slug)
+        }
     }
 
     fun onUpdateSoundVolume(soundId: String, volume: Float) {

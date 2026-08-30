@@ -70,7 +70,7 @@ data class AmbientSound(
                 iconEmoji = "🌊",
                 iconDrawableName = "ic_sound_ocean",
                 rawResName = "ocean",
-                volume = 0.50f,
+                volume = 0.65f,
                 isEnabled = false,
                 sortOrder = 5
             ),
@@ -82,7 +82,7 @@ data class AmbientSound(
                 iconEmoji = "🚆",
                 iconDrawableName = "ic_sound_train",
                 rawResName = "train",
-                volume = 0.45f,
+                volume = 0.70f,
                 isEnabled = false,
                 sortOrder = 6
             )

@@ -15,7 +15,6 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,13 +25,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -74,13 +70,13 @@ fun AmbientSoundCard(
     val context = LocalContext.current
 
     val borderColor by animateColorAsState(
-        targetValue = if (isActive) TealPrimary.copy(alpha = 0.8f) else Color.White.copy(alpha = 0.08f),
+        targetValue = if (isActive) TealPrimary.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.08f),
         label = "card_border_color"
     )
 
-    val shadowElevation = if (isActive) 10.dp else 0.dp
+    val shadowElevation = if (isActive) 12.dp else 0.dp
 
-    // Subtle breathing pulsation when track is actively playing
+    // Subtle breathing pulse when actively playing
     val infiniteTransition = rememberInfiniteTransition(label = "pulse_trans")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1.0f,
@@ -113,38 +109,47 @@ fun AmbientSoundCard(
                 color = borderColor,
                 shape = RoundedCornerShape(22.dp)
             )
-            .padding(14.dp)
+            .clickable { onToggle(!isActive) } // Tap anywhere on the card to easily toggle!
+            .padding(horizontal = 12.dp, vertical = 14.dp)
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween,
             modifier = Modifier.fillMaxSize()
         ) {
-            // Sound Icon Badge & Copywriting
+            // 1. Top Section: Icon & UX Copy
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Visual Icon Badge
+                // Circular Glowing Icon Badge
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
+                        .size(46.dp)
                         .scale(pulseScale)
                         .clip(CircleShape)
                         .background(
                             if (isActive) {
                                 Brush.radialGradient(
-                                    colors = listOf(TealPrimary.copy(alpha = 0.35f), Color(0xFF0F1526))
+                                    colors = listOf(
+                                        TealPrimary.copy(alpha = 0.35f),
+                                        Color(0xFF0F1526)
+                                    )
                                 )
                             } else {
                                 Brush.radialGradient(
-                                    colors = listOf(Color.White.copy(alpha = 0.06f), Color(0xFF0F1526))
+                                    colors = listOf(
+                                        Color.White.copy(alpha = 0.05f),
+                                        Color(0xFF0F1526)
+                                    )
                                 )
                             }
                         )
                         .border(
                             width = 1.dp,
-                            color = if (isActive) TealLight.copy(alpha = 0.6f) else Color.White.copy(alpha = 0.1f),
+                            color = if (isActive) TealLight.copy(alpha = 0.7f) else Color.White.copy(
+                                alpha = 0.1f
+                            ),
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -153,90 +158,106 @@ fun AmbientSoundCard(
                         Image(
                             painter = painterResource(id = iconResId),
                             contentDescription = sound.name,
-                            modifier = Modifier.size(28.dp),
+                            modifier = Modifier.size(26.dp),
                             colorFilter = if (isActive) ColorFilter.tint(TealLight) else ColorFilter.tint(TextSecondary)
                         )
                     } else {
                         Text(
                             text = sound.iconEmoji,
-                            fontSize = 24.sp
+                            fontSize = 22.sp
                         )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-                // UX Title
+                // Title
                 Text(
                     text = sound.name,
-                    style = AppTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold),
+                    style = AppTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 13.5.sp
+                    ),
                     color = if (isActive) TextPrimary else TextSecondary,
                     textAlign = TextAlign.Center,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
 
-                // UX Subtitle / Mood Microcopy
+                // Subtitle / Mood Microcopy
                 if (sound.subtitle.isNotEmpty()) {
                     Text(
                         text = sound.subtitle,
-                        style = AppTheme.typography.labelSmall.copy(fontSize = 11.sp),
-                        color = if (isActive) GoldLight.copy(alpha = 0.9f) else TextMuted,
+                        style = AppTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
+                        color = if (isActive) GoldLight.copy(alpha = 0.95f) else TextMuted,
                         textAlign = TextAlign.Center,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = 1.dp)
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(6.dp))
+            // 2. Center Section: Tactile Volume Slider & Percentage
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(vertical = 4.dp)
+            ) {
+                VerticalVolumeSlider(
+                    volume = sound.volume,
+                    isActive = isActive,
+                    onVolumeChange = { newVol ->
+                        onVolumeChange(newVol)
+                        if (!isActive && newVol > 0.05f) {
+                            onToggle(true)
+                        }
+                    },
+                    modifier = Modifier
+                        .width(36.dp)
+                        .height(78.dp)
+                )
 
-            // Vertical Volume Slider Track
-            VerticalVolumeSlider(
-                volume = sound.volume,
-                isActive = isActive,
-                onVolumeChange = { newVol ->
-                    onVolumeChange(newVol)
-                    if (!isActive && newVol > 0.05f) {
-                        onToggle(true)
-                    }
-                },
-                modifier = Modifier
-                    .width(38.dp)
-                    .height(90.dp)
-            )
+                Spacer(modifier = Modifier.height(4.dp))
 
-            Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "${(sound.volume * 100).roundToInt()}%",
+                    style = AppTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 11.sp
+                    ),
+                    color = if (isActive) TealLight else TextMuted
+                )
+            }
 
-            // Volume Percentage Label
-            Text(
-                text = "${(sound.volume * 100).roundToInt()}%",
-                style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.Medium),
-                color = if (isActive) TealLight else TextMuted
-            )
-
-            Spacer(modifier = Modifier.height(6.dp))
-
-            // Tactile ON/OFF Toggle Chip
+            // 3. Bottom Section: Tactile State Chip (Fixed Height & Centered)
             Box(
                 modifier = Modifier
-                    .clip(RoundedCornerShape(12.dp))
+                    .fillMaxWidth()
+                    .height(28.dp)
+                    .clip(RoundedCornerShape(10.dp))
                     .background(
                         if (isActive) {
                             Brush.horizontalGradient(listOf(TealPrimary, TealDark))
                         } else {
-                            Brush.horizontalGradient(listOf(Color.White.copy(alpha = 0.06f), Color.White.copy(alpha = 0.04f)))
+                            Brush.horizontalGradient(
+                                listOf(
+                                    Color.White.copy(alpha = 0.07f),
+                                    Color.White.copy(alpha = 0.04f)
+                                )
+                            )
                         }
-                    )
-                    .clickable { onToggle(!isActive) }
-                    .padding(horizontal = 18.dp, vertical = 6.dp),
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = if (isActive) "ACTIVE" else "OFF",
-                    style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold, fontSize = 10.sp),
-                    color = if (isActive) Color(0xFF071B18) else TextMuted
+                    style = AppTheme.typography.labelSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 10.sp,
+                        letterSpacing = 0.5.sp
+                    ),
+                    color = if (isActive) Color(0xFF041815) else TextMuted,
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -255,12 +276,12 @@ private fun VerticalVolumeSlider(
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(19.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(Color(0xFF0C101D))
             .border(
                 width = 1.dp,
-                color = if (isActive) TealPrimary.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.05f),
-                shape = RoundedCornerShape(19.dp)
+                color = if (isActive) TealPrimary.copy(alpha = 0.35f) else Color.White.copy(alpha = 0.05f),
+                shape = RoundedCornerShape(18.dp)
             )
             .pointerInput(Unit) {
                 detectVerticalDragGestures { change, _ ->
@@ -283,7 +304,10 @@ private fun VerticalVolumeSlider(
                         )
                     } else {
                         Brush.verticalGradient(
-                            colors = listOf(TextMuted.copy(alpha = 0.35f), TextMuted.copy(alpha = 0.15f))
+                            colors = listOf(
+                                TextMuted.copy(alpha = 0.35f),
+                                TextMuted.copy(alpha = 0.15f)
+                            )
                         )
                     }
                 )
@@ -293,14 +317,14 @@ private fun VerticalVolumeSlider(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 6.dp, vertical = 4.dp),
+                .padding(horizontal = 6.dp, vertical = 3.5.dp),
             contentAlignment = Alignment.BottomCenter
         ) {
             Box(
                 modifier = Modifier
-                    .size(width = 18.dp, height = 3.5.dp)
+                    .size(width = 16.dp, height = 3.dp)
                     .clip(CircleShape)
-                    .background(if (isActive) Color.White else Color.White.copy(alpha = 0.5f))
+                    .background(if (isActive) Color.White else Color.White.copy(alpha = 0.4f))
             )
         }
     }

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -173,7 +172,11 @@ fun MainScreen(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
                                 .background(CardDark)
-                                .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(20.dp))
+                                .border(
+                                    1.dp,
+                                    Color.White.copy(alpha = 0.08f),
+                                    RoundedCornerShape(20.dp)
+                                )
                                 .clickable { viewModel.openSurahSheet() }
                                 .padding(horizontal = 14.dp, vertical = 6.dp)
                         ) {
@@ -227,12 +230,12 @@ fun MainScreen(
                 item {
                     PlayerControls(
                         isPlaying = uiState.isPlaying,
-                        isShuffle = uiState.isShuffle,
+                        quranVolume = uiState.quranVolume,
                         sleepTimerText = uiState.sleepTimerRemainingText,
                         onPlayPause = { viewModel.onPlayPause() },
                         onPrevious = { viewModel.onPrevious() },
                         onNext = { viewModel.onNext() },
-                        onToggleShuffle = { viewModel.onToggleShuffle() },
+                        onQuranVolumeChange = { vol -> viewModel.onQuranVolumeChange(vol) },
                         onOpenSleepTimer = { viewModel.openSleepTimerSheet() }
                     )
                 }
@@ -270,7 +273,13 @@ fun MainScreen(
                 SurahListSheet(
                     surahs = uiState.surahs,
                     currentSurah = uiState.currentSurah,
+                    isLoading = uiState.isLoadingSurahs,
+                    downloadProgress = uiState.downloadProgress,
                     onSelectSurah = { surah -> viewModel.onSelectSurah(surah) },
+                    onDownloadSingleSurah = { surah -> viewModel.onDownloadSingleSurah(surah) },
+                    onDeleteSurahAudio = { surah -> viewModel.onDeleteSurahAudio(surah) },
+                    onDownloadAll = { viewModel.onDownloadAllSurahs() },
+                    onDeleteAllAudio = { viewModel.onDeleteAllAudio() },
                     onDismiss = { viewModel.closeSurahSheet() }
                 )
             }

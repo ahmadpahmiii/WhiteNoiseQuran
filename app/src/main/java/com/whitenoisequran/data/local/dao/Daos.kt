@@ -33,6 +33,9 @@ interface SurahDao {
     @Query("UPDATE surahs SET downloadState = :state, localFilePath = :localPath WHERE number = :number AND reciterId = :reciterId")
     suspend fun updateDownloadState(number: Int, reciterId: Int, state: DownloadState, localPath: String?)
 
+    @Query("UPDATE surahs SET downloadState = 'NONE', localFilePath = NULL WHERE reciterId = :reciterId")
+    suspend fun resetAllDownloadStates(reciterId: Int)
+
     @Query("SELECT COUNT(*) FROM surahs WHERE reciterId = :reciterId")
     suspend fun getSurahCount(reciterId: Int): Int
 }

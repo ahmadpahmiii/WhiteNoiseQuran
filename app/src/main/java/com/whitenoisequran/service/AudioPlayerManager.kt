@@ -1,12 +1,13 @@
 package com.whitenoisequran.service
 
 import android.content.Context
+import android.content.Intent
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.whitenoisequran.data.preferences.AppPreferences
-import com.whitenoisequran.domain.model.AmbientSound
 import com.whitenoisequran.domain.model.Reciter
 import com.whitenoisequran.domain.model.Surah
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -34,6 +35,8 @@ class AudioPlayerManager @Inject constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     private val exoPlayer: ExoPlayer = ExoPlayer.Builder(context).build()
+    val player: ExoPlayer get() = exoPlayer
+
     private var progressTrackingJob: Job? = null
 
     private val _isPlaying = MutableStateFlow(false)
@@ -51,9 +54,10 @@ class AudioPlayerManager @Inject constructor(
     private val _durationMs = MutableStateFlow(1L)
     val durationMs: StateFlow<Long> = _durationMs.asStateFlow()
 
-    private val _isShuffle = MutableStateFlow(false)
-    val isShuffle: StateFlow<Boolean> = _isShuffle.asStateFlow()
+    private val _quranVolume = MutableStateFlow(1.0f)
+    val quranVolume: StateFlow<Float> = _quranVolume.asStateFlow()
 
+    private var globalSleepFadeMultiplier: Float = 1.0f
     private var playlist: List<Surah> = emptyList()
 
     init {
@@ -68,6 +72,7 @@ class AudioPlayerManager @Inject constructor(
                 if (isPlaying) {
                     startProgressTracker()
                     ambientSoundMixer.resumeAll()
+                    ensureForegroundServiceStarted()
                 } else {
                     stopProgressTracker()
                 }
@@ -98,10 +103,17 @@ class AudioPlayerManager @Inject constructor(
                 ambientSoundMixer.stopAll()
             },
             onFade = { multiplier ->
-                exoPlayer.volume = multiplier
+                globalSleepFadeMultiplier = multiplier
+                exoPlayer.volume = (_quranVolume.value * multiplier).coerceIn(0f, 1f)
                 ambientSoundMixer.fadeVolumeMultiplier(multiplier)
             }
         )
+    }
+
+    fun setQuranVolume(volume: Float) {
+        val clamped = volume.coerceIn(0f, 1f)
+        _quranVolume.value = clamped
+        exoPlayer.volume = (clamped * globalSleepFadeMultiplier).coerceIn(0f, 1f)
     }
 
     fun updatePlaylist(surahs: List<Surah>, reciter: Reciter) {
@@ -119,11 +131,23 @@ class AudioPlayerManager @Inject constructor(
         val reciterSlug = reciter?.slug ?: "Misyari-Rasyid-Al-Afasi"
         val mediaUri = getAudioUri(surah, reciterSlug)
 
-        val mediaItem = MediaItem.fromUri(mediaUri)
+        val metadata = MediaMetadata.Builder()
+            .setTitle("${surah.number}. ${surah.nameLatin} (${surah.nameArabic})")
+            .setSubtitle(reciter?.name ?: "White Noise Quran")
+            .setArtist(reciter?.name ?: "White Noise Quran")
+            .setAlbumTitle("White Noise Quran")
+            .build()
+
+        val mediaItem = MediaItem.Builder()
+            .setUri(mediaUri)
+            .setMediaMetadata(metadata)
+            .build()
+
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.play()
         _isPlaying.value = true
+        ensureForegroundServiceStarted()
 
         scope.launch {
             appPreferences.setLastPlayedSurah(surah.number)
@@ -139,6 +163,7 @@ class AudioPlayerManager @Inject constructor(
             } else {
                 exoPlayer.play()
                 _isPlaying.value = true
+                ensureForegroundServiceStarted()
             }
         }
     }
@@ -151,11 +176,7 @@ class AudioPlayerManager @Inject constructor(
     fun playNext() {
         if (playlist.isEmpty()) return
         val currentIndex = playlist.indexOfFirst { it.number == _currentSurah.value?.number }
-        val nextIndex = if (_isShuffle.value) {
-            playlist.indices.random()
-        } else {
-            (currentIndex + 1) % playlist.size
-        }
+        val nextIndex = (currentIndex + 1) % playlist.size
         playSurah(playlist[nextIndex])
     }
 
@@ -171,8 +192,13 @@ class AudioPlayerManager @Inject constructor(
         _currentPositionMs.value = positionMs
     }
 
-    fun toggleShuffle() {
-        _isShuffle.value = !_isShuffle.value
+    private fun ensureForegroundServiceStarted() {
+        try {
+            val intent = Intent(context, AudioPlaybackService::class.java)
+            context.startService(intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     private fun getAudioUri(surah: Surah, reciterSlug: String): String {

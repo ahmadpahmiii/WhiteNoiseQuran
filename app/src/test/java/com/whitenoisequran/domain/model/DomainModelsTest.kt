@@ -21,12 +21,23 @@ class DomainModelsTest {
     @Test
     fun testDefaultAmbientSounds() {
         val sounds = AmbientSound.DefaultSounds
-        assertEquals(4, sounds.size)
+        assertEquals(6, sounds.size)
 
-        val whiteNoise = sounds.find { it.id == "white_noise" }
-        assertTrue(whiteNoise != null)
-        assertEquals("🌬", whiteNoise!!.iconEmoji)
-        assertFalse(whiteNoise.isEnabled)
+        val calmingRain = sounds.find { it.id == "calming_rain" }
+        assertTrue(calmingRain != null)
+        assertEquals("Steady Rain", calmingRain!!.name)
+        assertEquals("🌧️", calmingRain.iconEmoji)
+        assertEquals("ic_sound_calming_rain", calmingRain.iconDrawableName)
+        assertFalse(calmingRain.isEnabled)
+
+        val rainBird = sounds.find { it.id == "rain_bird" }
+        assertTrue(rainBird != null)
+        assertEquals("Rain & Songbirds", rainBird!!.name)
+        assertEquals("Nature", rainBird.category)
+
+        val train = sounds.find { it.id == "train" }
+        assertTrue(train != null)
+        assertEquals("Night Train", train!!.name)
     }
 
     @Test

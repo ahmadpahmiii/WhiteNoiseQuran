@@ -1,8 +1,9 @@
 package com.whitenoisequran.service
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.SoundPool
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlayer
 import com.whitenoisequran.domain.model.AmbientSound
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -17,99 +18,110 @@ import javax.inject.Singleton
 class AmbientSoundMixer @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val audioAttributes = AudioAttributes.Builder()
-        .setUsage(AudioAttributes.USAGE_MEDIA)
-        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-        .build()
-
-    private val soundPool: SoundPool = SoundPool.Builder()
-        .setMaxStreams(8)
-        .setAudioAttributes(audioAttributes)
-        .build()
-
-    // Map: soundId -> soundPoolId
-    private val loadedSoundIds = ConcurrentHashMap<String, Int>()
-    // Map: soundId -> activeStreamId
-    private val activeStreams = ConcurrentHashMap<String, Int>()
-    // Map: soundId -> targetVolume
+    // Map: soundId -> ExoPlayer instance
+    private val players = ConcurrentHashMap<String, ExoPlayer>()
+    // Map: soundId -> targetVolume (0f..1f)
     private val soundVolumes = ConcurrentHashMap<String, Float>()
+    // Set: soundIds that are enabled and should be playing
+    private val activeSoundIds = ConcurrentHashMap.newKeySet<String>()
 
-    init {
-        preloadAmbientSounds()
-    }
+    private var globalFadeMultiplier: Float = 1.0f
 
-    private fun preloadAmbientSounds() {
-        AmbientSound.DefaultSounds.forEach { sound ->
-            val resId = context.resources.getIdentifier(sound.rawResName, "raw", context.packageName)
-            if (resId != 0) {
-                val soundId = soundPool.load(context, resId, 1)
-                loadedSoundIds[sound.id] = soundId
-            }
+    private fun getOrCreatePlayer(soundId: String): ExoPlayer? {
+        val existing = players[soundId]
+        if (existing != null) return existing
+
+        val sound = AmbientSound.DefaultSounds.find { it.id == soundId } ?: return null
+        val resId = context.resources.getIdentifier(sound.rawResName, "raw", context.packageName)
+        if (resId == 0) return null
+
+        val rawUri = "android.resource://${context.packageName}/$resId"
+        val player = ExoPlayer.Builder(context).build().apply {
+            repeatMode = Player.REPEAT_MODE_ALL
+            val mediaItem = MediaItem.fromUri(rawUri)
+            setMediaItem(mediaItem)
+            prepare()
         }
+        players[soundId] = player
+        return player
     }
 
     fun setSoundActive(soundId: String, isEnabled: Boolean, volume: Float) {
         soundVolumes[soundId] = volume
-        if (isEnabled) {
-            startLoopingSound(soundId, volume)
-        } else {
-            stopSound(soundId)
+        scope.launch {
+            val player = getOrCreatePlayer(soundId) ?: return@launch
+            if (isEnabled) {
+                activeSoundIds.add(soundId)
+                player.volume = (volume * globalFadeMultiplier).coerceIn(0f, 1f)
+                if (!player.isPlaying) {
+                    player.play()
+                }
+            } else {
+                activeSoundIds.remove(soundId)
+                if (player.isPlaying) {
+                    player.pause()
+                    player.seekTo(0)
+                }
+            }
         }
     }
 
     fun setSoundVolume(soundId: String, volume: Float) {
         soundVolumes[soundId] = volume
-        val streamId = activeStreams[soundId]
-        if (streamId != null && streamId != 0) {
-            soundPool.setVolume(streamId, volume, volume)
-        }
-    }
-
-    private fun startLoopingSound(soundId: String, volume: Float) {
-        stopSound(soundId)
-        val sampleId = loadedSoundIds[soundId]
-        if (sampleId != null && sampleId != 0) {
-            val streamId = soundPool.play(sampleId, volume, volume, 1, -1, 1.0f)
-            if (streamId != 0) {
-                activeStreams[soundId] = streamId
-            }
-        }
-    }
-
-    private fun stopSound(soundId: String) {
-        val streamId = activeStreams.remove(soundId)
-        if (streamId != null && streamId != 0) {
-            soundPool.stop(streamId)
+        scope.launch {
+            val player = players[soundId] ?: return@launch
+            player.volume = (volume * globalFadeMultiplier).coerceIn(0f, 1f)
         }
     }
 
     fun pauseAll() {
-        soundPool.autoPause()
+        scope.launch {
+            players.values.forEach { player ->
+                if (player.isPlaying) {
+                    player.pause()
+                }
+            }
+        }
     }
 
     fun resumeAll() {
-        soundPool.autoResume()
+        scope.launch {
+            activeSoundIds.forEach { soundId ->
+                val player = players[soundId]
+                val vol = soundVolumes[soundId] ?: 0.5f
+                player?.volume = (vol * globalFadeMultiplier).coerceIn(0f, 1f)
+                player?.play()
+            }
+        }
     }
 
     fun stopAll() {
-        activeStreams.forEach { (soundId, streamId) ->
-            soundPool.stop(streamId)
+        activeSoundIds.clear()
+        scope.launch {
+            players.values.forEach { player ->
+                player.pause()
+                player.seekTo(0)
+            }
         }
-        activeStreams.clear()
     }
 
     fun fadeVolumeMultiplier(multiplier: Float) {
-        activeStreams.forEach { (soundId, streamId) ->
-            val baseVol = soundVolumes[soundId] ?: 0.5f
-            val scaledVol = (baseVol * multiplier).coerceIn(0f, 1f)
-            soundPool.setVolume(streamId, scaledVol, scaledVol)
+        globalFadeMultiplier = multiplier.coerceIn(0f, 1f)
+        scope.launch {
+            players.forEach { (soundId, player) ->
+                val baseVol = soundVolumes[soundId] ?: 0.5f
+                player.volume = (baseVol * globalFadeMultiplier).coerceIn(0f, 1f)
+            }
         }
     }
 
     fun release() {
-        stopAll()
-        soundPool.release()
+        activeSoundIds.clear()
+        scope.launch {
+            players.values.forEach { it.release() }
+            players.clear()
+        }
     }
 }

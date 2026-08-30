@@ -16,7 +16,7 @@ class AmbientRepositoryImpl @Inject constructor(
 
     override fun getAmbientSoundsFlow(): Flow<List<AmbientSound>> {
         return ambientSoundDao.getAllSounds().map { entities ->
-            if (entities.isEmpty()) {
+            if (entities.isEmpty() || entities.size < AmbientSound.DefaultSounds.size) {
                 AmbientSound.DefaultSounds
             } else {
                 entities.map { it.toDomain() }
@@ -39,7 +39,7 @@ class AmbientRepositoryImpl @Inject constructor(
     }
 
     private suspend fun seedIfEmpty() {
-        if (ambientSoundDao.getSoundCount() == 0) {
+        if (ambientSoundDao.getSoundCount() < AmbientSound.DefaultSounds.size) {
             val entities = AmbientSound.DefaultSounds.map { it.toEntity() }
             ambientSoundDao.insertSounds(entities)
         }
@@ -48,7 +48,10 @@ class AmbientRepositoryImpl @Inject constructor(
     private fun AmbientSoundEntity.toDomain(): AmbientSound = AmbientSound(
         id = id,
         name = name,
+        subtitle = subtitle,
+        category = category,
         iconEmoji = iconEmoji,
+        iconDrawableName = iconDrawableName,
         rawResName = rawResName,
         volume = volume,
         isEnabled = isEnabled,
@@ -58,7 +61,10 @@ class AmbientRepositoryImpl @Inject constructor(
     private fun AmbientSound.toEntity(): AmbientSoundEntity = AmbientSoundEntity(
         id = id,
         name = name,
+        subtitle = subtitle,
+        category = category,
         iconEmoji = iconEmoji,
+        iconDrawableName = iconDrawableName,
         rawResName = rawResName,
         volume = volume,
         isEnabled = isEnabled,

@@ -33,7 +33,10 @@ data class ReciterEntity(
 data class AmbientSoundEntity(
     @PrimaryKey val id: String,
     val name: String,
+    val subtitle: String = "",
+    val category: String = "Ambient",
     val iconEmoji: String,
+    val iconDrawableName: String = "",
     val rawResName: String,
     val volume: Float = 0.5f,
     val isEnabled: Boolean = false,

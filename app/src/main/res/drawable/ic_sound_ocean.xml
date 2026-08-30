@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- Crescent Moon Over Water -->
+  <path
+      android:fillColor="#FFE8C97A"
+      android:pathData="M16.5,2.5c-0.34,0 -0.67,0.04 -1,0.1 2.38,1.19 4,3.65 4,6.4 0,3.98 -3.22,7.2 -7.2,7.2 -0.83,0 -1.63,-0.14 -2.37,-0.41 1.48,2.54 4.25,4.21 7.37,4.21 4.86,0 8.8,-3.94 8.8,-8.8 0,-4.86 -3.94,-8.7 -9.6,-8.7z"/>
+  <!-- Ocean Wave Crest 1 -->
+  <path
+      android:fillColor="#FF2DD4BF"
+      android:pathData="M2,16.5c2.5,0 4,-2 6.5,-2s4,2 6.5,2 4,-2 6.5,-2v-2c-2.5,0 -4,2 -6.5,2s-4,-2 -6.5,-2 -4,2 -6.5,2v2z"/>
+  <!-- Ocean Wave Crest 2 -->
+  <path
+      android:fillColor="#FF5EEAD4"
+      android:pathData="M2,20.5c2.5,0 4,-2 6.5,-2s4,2 6.5,2 4,-2 6.5,-2v-2c-2.5,0 -4,2 -6.5,2s-4,-2 -6.5,-2 -4,2 -6.5,2v2z"/>
+</vector>

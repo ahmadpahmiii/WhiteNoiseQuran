@@ -1,22 +1,37 @@
 package com.whitenoisequran.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.whitenoisequran.domain.model.AmbientSound
 import com.whitenoisequran.ui.theme.AppTheme
 import com.whitenoisequran.ui.theme.GoldPrimary
+import com.whitenoisequran.ui.theme.TealLight
+import com.whitenoisequran.ui.theme.TealPrimary
 import com.whitenoisequran.ui.theme.TextMuted
 import com.whitenoisequran.ui.theme.TextSecondary
 
@@ -28,7 +43,8 @@ fun AmbientMixerSection(
     onResetAll: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val anyActive = sounds.any { it.isEnabled }
+    val activeCount = sounds.count { it.isEnabled }
+    val anyActive = activeCount > 0
 
     Column(
         modifier = modifier
@@ -45,15 +61,36 @@ fun AmbientMixerSection(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "🎵",
-                    style = AppTheme.typography.titleMedium
+                Icon(
+                    imageVector = Icons.Default.GraphicEq,
+                    contentDescription = "Ambient Mix",
+                    tint = GoldPrimary,
+                    modifier = Modifier.size(22.dp)
                 )
                 Text(
-                    text = "Ambient Mix",
+                    text = "Ambient Soundscape",
                     style = AppTheme.typography.headlineMedium,
                     color = GoldPrimary
                 )
+
+                if (anyActive) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(TealPrimary.copy(alpha = 0.15f))
+                            .border(1.dp, TealLight.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "$activeCount Active",
+                            style = AppTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.sp
+                            ),
+                            color = TealLight
+                        )
+                    }
+                }
             }
 
             if (anyActive) {
@@ -69,7 +106,7 @@ fun AmbientMixerSection(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 2x2 Sound Grid (rendered as 2 rows of 2 columns)
+        // Sound Grid (rendered as 2 columns per row)
         val chunkedSounds = sounds.chunked(2)
         chunkedSounds.forEach { rowSounds ->
             Row(
@@ -85,7 +122,7 @@ fun AmbientMixerSection(
                         onToggle = { isEn -> onToggleSound(sound.id, isEn) },
                         modifier = Modifier
                             .weight(1f)
-                            .height(230.dp)
+                            .height(254.dp)
                     )
                 }
                 // If odd number of items, fill spacer
@@ -95,17 +132,17 @@ fun AmbientMixerSection(
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(4.dp))
 
-        // Teaser label
+        // Ambient Footer Note
         Text(
-            text = "✨ More sounds coming soon",
+            text = "✨ Mix multi-layered ambient soundscapes with Quran recitation",
             style = AppTheme.typography.bodySmall,
             fontStyle = FontStyle.Italic,
             color = TextMuted,
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
-                .padding(vertical = 12.dp)
+                .padding(vertical = 8.dp)
         )
     }
 }

@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="32dp"
+    android:height="32dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <!-- Pine Tree Left -->
+  <path
+      android:fillColor="#FF2DD4BF"
+      android:pathData="M7,12h2l-3.5,-5L9,7 6.5,3 4,7l3.5,0L4,12h2v4H5v2h4v-2H8v-4z"/>
+  <!-- Pine Tree Center Big -->
+  <path
+      android:fillColor="#FF5EEAD4"
+      android:pathData="M14,15h3l-5.5,-8L15,7 12,2 9,7l3.5,0L7,15h3v5h-1v2h6v-2h-1v-5z"/>
+  <!-- Forest Wind / Ground Swirl -->
+  <path
+      android:fillColor="#FFE8C97A"
+      android:pathData="M17,13c-0.55,0 -1,0.45 -1,1s0.45,1 1,1h3c0.55,0 1,-0.45 1,-1s-0.45,-1 -1,-1h-3zM16,17c-0.55,0 -1,0.45 -1,1s0.45,1 1,1h4c0.55,0 1,-0.45 1,-1s-0.45,-1 -1,-1h-4z"/>
+</vector>

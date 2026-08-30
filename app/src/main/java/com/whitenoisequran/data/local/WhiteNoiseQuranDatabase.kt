@@ -2,7 +2,6 @@ package com.whitenoisequran.data.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverters
 import com.whitenoisequran.data.local.dao.AmbientSoundDao
 import com.whitenoisequran.data.local.dao.ReciterDao
 import com.whitenoisequran.data.local.dao.SurahDao

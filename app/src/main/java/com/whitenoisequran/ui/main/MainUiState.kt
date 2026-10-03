@@ -12,6 +12,8 @@ data class MainUiState(
     val ambientSounds: List<AmbientSound> = emptyList(),
     val isPlaying: Boolean = false,
     val isBuffering: Boolean = false,
+    /** The ambient mix is audible (it can play without the Quran). */
+    val isAmbientPlaying: Boolean = false,
     val quranVolume: Float = 1.0f,
     val playbackPositionMs: Long = 0L,
     val playbackDurationMs: Long = 1L,
@@ -33,7 +35,6 @@ data class MainUiState(
 
 data class DownloadConfirm(
     val surahCount: Int,
-    /** Null while measuring, or when the size couldn't be checked. */
-    val bytes: Long? = null,
-    val isMeasuring: Boolean = true
+    /** Estimated size; null when unknown. */
+    val bytes: Long?
 )

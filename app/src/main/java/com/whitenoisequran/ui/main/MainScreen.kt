@@ -41,11 +41,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.whitenoisequran.R
 import com.whitenoisequran.domain.model.DownloadState
 import com.whitenoisequran.ui.components.AmbientMixerSection
 import com.whitenoisequran.ui.components.IslamicBackgroundPattern
@@ -121,12 +124,12 @@ fun MainScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Nightlight,
-                                contentDescription = "Logo",
+                                contentDescription = null,
                                 tint = GoldPrimary,
                                 modifier = Modifier.size(22.dp)
                             )
                             Text(
-                                text = "White Noise Quran",
+                                text = stringResource(R.string.app_name),
                                 style = AppTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = GoldPrimary
@@ -136,7 +139,7 @@ fun MainScreen(
                         IconButton(onClick = { viewModel.openSurahSheet() }) {
                             Icon(
                                 imageVector = Icons.Default.FormatListNumbered,
-                                contentDescription = "Surah List",
+                                contentDescription = stringResource(R.string.cd_surah_list),
                                 tint = TextSecondary
                             )
                         }
@@ -165,21 +168,43 @@ fun MainScreen(
                             .padding(horizontal = 24.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        // Large Arabic Name
-                        Text(
-                            text = arabicName,
-                            style = ArabicTitleStyle.copy(fontSize = 34.sp),
-                            color = TextPrimary
-                        )
+                        // Surah title opens the Surah Index (like the reciter pill below opens the reciter picker)
+                        Column(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(16.dp))
+                                .clickable(onClickLabel = stringResource(R.string.cd_choose_surah)) { viewModel.openSurahSheet() }
+                                .padding(horizontal = 12.dp, vertical = 4.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // Large Arabic Name
+                            Text(
+                                text = arabicName,
+                                style = ArabicTitleStyle.copy(fontSize = 34.sp),
+                                color = TextPrimary
+                            )
 
-                        Spacer(modifier = Modifier.height(4.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
 
-                        // Latin Name and Surah details
-                        Text(
-                            text = "$latinName · Surah $surahNumber · $ayatCount Verses",
-                            style = AppTheme.typography.titleSmall,
-                            color = TextSecondary
-                        )
+                            // Latin Name and Surah details
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = stringResource(
+                                        R.string.surah_info,
+                                        latinName,
+                                        surahNumber,
+                                        ayatCount
+                                    ),
+                                    style = AppTheme.typography.titleSmall,
+                                    color = TextSecondary
+                                )
+                                Icon(
+                                    imageVector = Icons.Default.ExpandMore,
+                                    contentDescription = null,
+                                    tint = TextMuted,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(10.dp))
 
@@ -223,7 +248,7 @@ fun MainScreen(
 
                                 Icon(
                                     imageVector = Icons.Default.ExpandMore,
-                                    contentDescription = "Change reciter",
+                                    contentDescription = stringResource(R.string.cd_change_reciter),
                                     tint = TextMuted,
                                     modifier = Modifier.size(14.dp)
                                 )
@@ -274,6 +299,8 @@ fun MainScreen(
                 item {
                     AmbientMixerSection(
                         sounds = uiState.ambientSounds,
+                        isMixPlaying = uiState.isAmbientPlaying,
+                        onToggleMix = { viewModel.onToggleAmbientMix() },
                         onVolumeChange = { soundId, vol -> viewModel.onUpdateSoundVolume(soundId, vol) },
                         onToggleSound = { soundId, isEn -> viewModel.onToggleSound(soundId, isEn) },
                         onResetAll = { viewModel.onResetAllSounds() }
@@ -321,26 +348,31 @@ fun MainScreen(
                     uiState.surahs.count { it.downloadState == DownloadState.DONE }
                 AlertDialog(
                     onDismissRequest = { viewModel.dismissDeleteAllAudio() },
-                    title = { Text("Delete downloaded audio?") },
+                    title = { Text(stringResource(R.string.delete_all_title)) },
                     text = {
                         Text(
-                            buildString {
-                                append("Removes $downloadedCount ${if (downloadedCount == 1) "surah" else "surahs"} ")
-                                append("(${Formatter.formatShortFileSize(context, bytes)}) ")
-                                append("of ${uiState.currentReciter?.name ?: "this reciter"}. ")
-                                if (uiState.downloadProgress.isRunning) append("The running download stops. ")
-                                append("You can stream or download them again later.")
-                            }
+                            listOfNotNull(
+                                pluralStringResource(
+                                    R.plurals.delete_all_body,
+                                    downloadedCount,
+                                    downloadedCount,
+                                    Formatter.formatShortFileSize(context, bytes),
+                                    uiState.currentReciter?.name
+                                        ?: stringResource(R.string.this_reciter)
+                                ),
+                                if (uiState.downloadProgress.isRunning) stringResource(R.string.delete_all_running) else null,
+                                stringResource(R.string.delete_all_later)
+                            ).joinToString(" ")
                         )
                     },
                     confirmButton = {
                         TextButton(onClick = { viewModel.onDeleteAllAudio() }) {
-                            Text("Delete", color = ErrorRed)
+                            Text(stringResource(R.string.delete), color = ErrorRed)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { viewModel.dismissDeleteAllAudio() }) {
-                            Text("Cancel", color = TextSecondary)
+                            Text(stringResource(R.string.cancel), color = TextSecondary)
                         }
                     },
                     containerColor = SurfaceDark,
@@ -351,26 +383,32 @@ fun MainScreen(
 
             uiState.downloadConfirm?.let { confirm ->
                 val context = LocalContext.current
-                val count =
-                    "${confirm.surahCount} ${if (confirm.surahCount == 1) "surah" else "surahs"}"
                 AlertDialog(
                     onDismissRequest = { viewModel.dismissDownloadAll() },
-                    title = { Text(if (confirm.surahCount == 114) "Download all 114 surahs?" else "Download $count?") },
+                    title = {
+                        Text(
+                            if (confirm.surahCount == 114) {
+                                stringResource(R.string.download_all_title)
+                            } else {
+                                pluralStringResource(
+                                    R.plurals.download_some_title,
+                                    confirm.surahCount,
+                                    confirm.surahCount
+                                )
+                            }
+                        )
+                    },
                     text = {
                         Text(
-                            when {
-                                confirm.isMeasuring -> "Checking the size…"
-                                confirm.bytes != null ->
-                                    "About ${
-                                        Formatter.formatShortFileSize(
-                                            context,
-                                            confirm.bytes
-                                        )
-                                    }. Wi-Fi recommended. " +
-                                            "Downloaded surahs play without internet."
-
-                                else -> "Couldn't check the size right now. Downloaded surahs play without internet."
-                            }
+                            listOfNotNull(
+                                confirm.bytes?.let {
+                                    stringResource(
+                                        R.string.download_size_about,
+                                        Formatter.formatShortFileSize(context, it)
+                                    )
+                                },
+                                stringResource(R.string.download_wifi_note)
+                            ).joinToString(" ")
                         )
                     },
                     confirmButton = {
@@ -378,12 +416,12 @@ fun MainScreen(
                             viewModel.dismissDownloadAll()
                             openDownloads() // the download screen starts it
                         }) {
-                            Text("Download", color = GoldPrimary)
+                            Text(stringResource(R.string.download), color = GoldPrimary)
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { viewModel.dismissDownloadAll() }) {
-                            Text("Cancel", color = TextSecondary)
+                            Text(stringResource(R.string.cancel), color = TextSecondary)
                         }
                     },
                     containerColor = SurfaceDark,

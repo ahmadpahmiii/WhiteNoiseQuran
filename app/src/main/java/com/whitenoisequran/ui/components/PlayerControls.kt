@@ -44,11 +44,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whitenoisequran.R
 import com.whitenoisequran.ui.theme.AppTheme
 import com.whitenoisequran.ui.theme.BackgroundNavy
 import com.whitenoisequran.ui.theme.CardDark
@@ -108,7 +110,7 @@ fun PlayerControls(
                 ) {
                     Icon(
                         imageVector = if (quranVolume > 0.05f) Icons.AutoMirrored.Filled.VolumeDown else Icons.AutoMirrored.Filled.VolumeOff,
-                        contentDescription = "Quran Volume",
+                        contentDescription = null, // the slider's label says it
                         tint = GoldPrimary,
                         modifier = Modifier.size(18.dp)
                     )
@@ -126,7 +128,10 @@ fun PlayerControls(
                     )
 
                     Text(
-                        text = "Quran ${(quranVolume * 100).roundToInt()}%",
+                        text = stringResource(
+                            R.string.quran_volume_percent,
+                            (quranVolume * 100).roundToInt()
+                        ),
                         style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
                         color = GoldLight,
                         fontSize = 11.sp
@@ -162,7 +167,7 @@ fun PlayerControls(
                         quranVolume < 0.5f -> Icons.AutoMirrored.Filled.VolumeDown
                         else -> Icons.AutoMirrored.Filled.VolumeUp
                     },
-                    contentDescription = "Quran Volume Control",
+                    contentDescription = stringResource(R.string.cd_quran_volume),
                     tint = if (isVolumeSliderOpen) GoldPrimary else TextSecondary,
                     modifier = Modifier.size(20.dp)
                 )
@@ -175,7 +180,7 @@ fun PlayerControls(
             ) {
                 Icon(
                     imageVector = Icons.Default.SkipPrevious,
-                    contentDescription = "Previous Surah",
+                    contentDescription = stringResource(R.string.cd_previous_surah),
                     tint = TextPrimary,
                     modifier = Modifier.size(30.dp)
                 )
@@ -199,17 +204,18 @@ fun PlayerControls(
             ) {
                 if (isBuffering) {
                     // Loading the audio; tapping still pauses
+                    val loadingLabel = stringResource(R.string.cd_loading_tap_to_pause)
                     CircularProgressIndicator(
                         color = BackgroundNavy,
                         strokeWidth = 3.dp,
                         modifier = Modifier
                             .size(30.dp)
-                            .semantics { contentDescription = "Loading, tap to pause" }
+                            .semantics { contentDescription = loadingLabel }
                     )
                 } else {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = if (isPlaying) "Pause" else "Play",
+                        contentDescription = stringResource(if (isPlaying) R.string.pause else R.string.play),
                         tint = BackgroundNavy,
                         modifier = Modifier.size(36.dp)
                     )
@@ -223,7 +229,7 @@ fun PlayerControls(
             ) {
                 Icon(
                     imageVector = Icons.Default.SkipNext,
-                    contentDescription = "Next Surah",
+                    contentDescription = stringResource(R.string.cd_next_surah),
                     tint = TextPrimary,
                     modifier = Modifier.size(30.dp)
                 )
@@ -251,12 +257,12 @@ fun PlayerControls(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Timer,
-                        contentDescription = "Sleep Timer",
+                        contentDescription = stringResource(R.string.sleep_timer),
                         tint = if (sleepTimerText != null) GoldPrimary else TextSecondary,
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
-                        text = sleepTimerText ?: "Timer",
+                        text = sleepTimerText ?: stringResource(R.string.timer),
                         style = AppTheme.typography.labelSmall.copy(
                             fontWeight = if (sleepTimerText != null) FontWeight.Bold else FontWeight.Normal,
                             fontSize = 11.sp

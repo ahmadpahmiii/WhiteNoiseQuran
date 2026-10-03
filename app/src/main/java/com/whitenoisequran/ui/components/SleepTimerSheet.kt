@@ -44,9 +44,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whitenoisequran.R
 import com.whitenoisequran.ui.theme.AppTheme
 import com.whitenoisequran.ui.theme.CardDark
 import com.whitenoisequran.ui.theme.ErrorRed
@@ -116,12 +118,12 @@ fun SleepTimerSheet(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Nightlight,
-                        contentDescription = "Sleep",
+                        contentDescription = null,
                         tint = GoldPrimary,
                         modifier = Modifier.size(22.dp)
                     )
                     Text(
-                        text = "Sleep Timer",
+                        text = stringResource(R.string.sleep_timer),
                         style = AppTheme.typography.headlineMedium,
                         color = TextPrimary
                     )
@@ -130,7 +132,7 @@ fun SleepTimerSheet(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
+                        contentDescription = stringResource(R.string.close),
                         tint = TextSecondary
                     )
                 }
@@ -164,7 +166,7 @@ fun SleepTimerSheet(
                                     .background(TealPrimary.copy(alpha = pulseAlpha))
                             )
                             Text(
-                                text = "Stops in $remainingFormatted",
+                                text = stringResource(R.string.stops_in, remainingFormatted),
                                 style = AppTheme.typography.titleMedium,
                                 color = TealLight
                             )
@@ -172,7 +174,7 @@ fun SleepTimerSheet(
 
                         TextButton(onClick = onCancelTimer) {
                             Text(
-                                text = "Cancel Timer",
+                                text = stringResource(R.string.cancel_timer),
                                 style = AppTheme.typography.labelMedium,
                                 color = ErrorRed
                             )
@@ -237,7 +239,7 @@ fun SleepTimerSheet(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Remove,
-                        contentDescription = "Decrease",
+                        contentDescription = stringResource(R.string.cd_decrease),
                         tint = GoldLight
                     )
                 }
@@ -250,7 +252,7 @@ fun SleepTimerSheet(
                         color = GoldPrimary
                     )
                     Text(
-                        text = "minutes",
+                        text = stringResource(R.string.minutes),
                         style = AppTheme.typography.bodySmall,
                         color = TextMuted
                     )
@@ -267,7 +269,7 @@ fun SleepTimerSheet(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Add,
-                        contentDescription = "Increase",
+                        contentDescription = stringResource(R.string.cd_increase),
                         tint = GoldLight
                     )
                 }
@@ -291,7 +293,7 @@ fun SleepTimerSheet(
                     .height(54.dp)
             ) {
                 Text(
-                    text = "Set Timer ($selectedMinutes min)",
+                    text = stringResource(R.string.set_timer, selectedMinutes),
                     style = AppTheme.typography.labelLarge.copy(fontSize = 16.sp),
                     fontWeight = FontWeight.Bold
                 )

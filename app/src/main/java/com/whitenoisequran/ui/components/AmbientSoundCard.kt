@@ -40,11 +40,13 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whitenoisequran.R
 import com.whitenoisequran.domain.model.AmbientSound
 import com.whitenoisequran.ui.theme.AppTheme
 import com.whitenoisequran.ui.theme.CardDarkFrosted
@@ -62,12 +64,24 @@ import kotlin.math.roundToInt
 @Composable
 fun AmbientSoundCard(
     sound: AmbientSound,
+    /** In the mix and audible; a sound can be in the mix while the mix is paused. */
+    isPlaying: Boolean,
     onVolumeChange: (Float) -> Unit,
     onToggle: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val isActive = sound.isEnabled
     val context = LocalContext.current
+
+    // Translated name by sound id (sound_<id>, sound_<id>_subtitle); new sounds fall back to their data
+    val nameResId = remember(sound.id) {
+        context.resources.getIdentifier("sound_${sound.id}", "string", context.packageName)
+    }
+    val subtitleResId = remember(sound.id) {
+        context.resources.getIdentifier("sound_${sound.id}_subtitle", "string", context.packageName)
+    }
+    val name = if (nameResId != 0) stringResource(nameResId) else sound.name
+    val subtitle = if (subtitleResId != 0) stringResource(subtitleResId) else sound.subtitle
 
     val borderColor by animateColorAsState(
         targetValue = if (isActive) TealPrimary.copy(alpha = 0.85f) else Color.White.copy(alpha = 0.08f),
@@ -80,7 +94,7 @@ fun AmbientSoundCard(
     val infiniteTransition = rememberInfiniteTransition(label = "pulse_trans")
     val pulseScale by infiniteTransition.animateFloat(
         initialValue = 1.0f,
-        targetValue = if (isActive) 1.06f else 1.0f,
+        targetValue = if (isPlaying) 1.06f else 1.0f,
         animationSpec = infiniteRepeatable(
             animation = tween(1500, easing = FastOutSlowInEasing),
             repeatMode = RepeatMode.Reverse
@@ -157,7 +171,7 @@ fun AmbientSoundCard(
                     if (iconResId != 0) {
                         Image(
                             painter = painterResource(id = iconResId),
-                            contentDescription = sound.name,
+                            contentDescription = null, // the name is right below
                             modifier = Modifier.size(26.dp),
                             colorFilter = if (isActive) ColorFilter.tint(TealLight) else ColorFilter.tint(TextSecondary)
                         )
@@ -173,7 +187,7 @@ fun AmbientSoundCard(
 
                 // Title
                 Text(
-                    text = sound.name,
+                    text = name,
                     style = AppTheme.typography.titleSmall.copy(
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 13.5.sp
@@ -185,9 +199,9 @@ fun AmbientSoundCard(
                 )
 
                 // Subtitle / Mood Microcopy
-                if (sound.subtitle.isNotEmpty()) {
+                if (subtitle.isNotEmpty()) {
                     Text(
-                        text = sound.subtitle,
+                        text = subtitle,
                         style = AppTheme.typography.labelSmall.copy(fontSize = 10.5.sp),
                         color = if (isActive) GoldLight.copy(alpha = 0.95f) else TextMuted,
                         textAlign = TextAlign.Center,
@@ -250,7 +264,13 @@ fun AmbientSoundCard(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = if (isActive) "ACTIVE" else "OFF",
+                    text = stringResource(
+                        when {
+                            isPlaying -> R.string.sound_state_active
+                            isActive -> R.string.sound_state_paused
+                            else -> R.string.sound_state_off
+                        }
+                    ),
                     style = AppTheme.typography.labelSmall.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = 10.sp,

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?><!-- Languages selectable per app in system settings (Android 13+); "id" is the default values/ -->
+<locale-config xmlns:android="http://schemas.android.com/apk/res/android">
+    <locale android:name="id" />
+    <locale android:name="ms" />
+    <locale android:name="en" />
+</locale-config>

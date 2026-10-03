@@ -12,6 +12,17 @@ data class SurahStaticInfo(
 )
 
 object QuranMetadataRegistry {
+    /** All 114 files per reciter slug, summed from the CDN's Content-Length (measured 2026-10-03).
+     *  Lets the app show a download size instantly; re-measure if the CDN files change. */
+    val fullQuranBytes: Map<String, Long> = mapOf(
+        "Abdullah-Al-Juhany" to 1_256_399_906L,
+        "Abdul-Muhsin-Al-Qasim" to 1_763_920_837L,
+        "Abdurrahman-as-Sudais" to 1_840_839_265L,
+        "Ibrahim-Al-Dossari" to 1_496_825_363L,
+        "Misyari-Rasyid-Al-Afasi" to 1_657_958_653L,
+        "Yasser-Al-Dosari" to 1_493_096_232L
+    )
+
     fun audioUrl(reciterSlug: String, surahNumber: Int): String =
         String.format(
             Locale.US,

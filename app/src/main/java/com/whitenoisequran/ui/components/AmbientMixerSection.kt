@@ -2,8 +2,8 @@ package com.whitenoisequran.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -21,10 +23,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whitenoisequran.R
 import com.whitenoisequran.domain.model.AmbientSound
 import com.whitenoisequran.ui.theme.AppTheme
 import com.whitenoisequran.ui.theme.GoldPrimary
@@ -36,6 +41,9 @@ import com.whitenoisequran.ui.theme.TextSecondary
 @Composable
 fun AmbientMixerSection(
     sounds: List<AmbientSound>,
+    /** The mix is kept across launches but only plays after Play (here or the Quran's). */
+    isMixPlaying: Boolean,
+    onToggleMix: () -> Unit,
     onVolumeChange: (String, Float) -> Unit,
     onToggleSound: (String, Boolean) -> Unit,
     onResetAll: () -> Unit,
@@ -61,26 +69,42 @@ fun AmbientMixerSection(
             ) {
                 Icon(
                     imageVector = Icons.Default.GraphicEq,
-                    contentDescription = "Ambient Mix",
+                    contentDescription = null,
                     tint = GoldPrimary,
                     modifier = Modifier.size(22.dp)
                 )
                 Text(
-                    text = "Ambient Soundscape",
+                    text = stringResource(R.string.ambient_title),
                     style = AppTheme.typography.headlineMedium,
                     color = GoldPrimary
                 )
 
+                // Play/pause for the whole mix, which can play without the Quran
                 if (anyActive) {
-                    Box(
+                    Row(
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
                             .background(TealPrimary.copy(alpha = 0.15f))
                             .border(1.dp, TealLight.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
-                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                            .clickable(onClick = onToggleMix)
+                            .padding(horizontal = 8.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(3.dp)
                     ) {
+                        Icon(
+                            imageVector = if (isMixPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = stringResource(
+                                if (isMixPlaying) R.string.cd_pause_ambient else R.string.cd_play_ambient
+                            ),
+                            tint = TealLight,
+                            modifier = Modifier.size(14.dp)
+                        )
                         Text(
-                            text = "$activeCount Active",
+                            text = pluralStringResource(
+                                R.plurals.ambient_sound_count,
+                                activeCount,
+                                activeCount
+                            ),
                             style = AppTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 10.sp
@@ -94,7 +118,7 @@ fun AmbientMixerSection(
             if (anyActive) {
                 TextButton(onClick = onResetAll) {
                     Text(
-                        text = "Reset All",
+                        text = stringResource(R.string.reset_all),
                         style = AppTheme.typography.labelMedium,
                         color = TextSecondary
                     )
@@ -116,6 +140,7 @@ fun AmbientMixerSection(
                 rowSounds.forEach { sound ->
                     AmbientSoundCard(
                         sound = sound,
+                        isPlaying = sound.isEnabled && isMixPlaying,
                         onVolumeChange = { vol -> onVolumeChange(sound.id, vol) },
                         onToggle = { isEn -> onToggleSound(sound.id, isEn) },
                         modifier = Modifier
@@ -134,7 +159,7 @@ fun AmbientMixerSection(
 
         // Ambient Footer Note
         Text(
-            text = "✨ Mix multi-layered ambient soundscapes with Quran recitation",
+            text = stringResource(R.string.ambient_footer),
             style = AppTheme.typography.bodySmall,
             fontStyle = FontStyle.Italic,
             color = TextMuted,

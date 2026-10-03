@@ -17,10 +17,10 @@ class AmbientRepositoryImpl @Inject constructor(
     private val ambientSoundDao: AmbientSoundDao
 ) : AmbientRepository {
 
+    // The mix (enabled sounds) is kept across launches; it plays again on Play, not at startup
     init {
         CoroutineScope(Dispatchers.IO).launch {
             seedIfEmpty()
-            ambientSoundDao.disableAll()
         }
     }
 

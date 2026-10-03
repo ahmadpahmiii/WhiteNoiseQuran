@@ -16,8 +16,8 @@ interface DownloadRepository {
     /** Disk space used by a reciter's audio, including partly downloaded files. */
     suspend fun getAudioSizeBytes(reciterSlug: String): Long
 
-    /** Size of these surahs on the server, or null when it can't be checked (e.g. offline). */
-    suspend fun getDownloadSizeBytes(reciterSlug: String, surahNumbers: List<Int>): Long?
+    /** What's left to download for the full Quran, or null when the reciter's size isn't known. */
+    suspend fun getRemainingDownloadBytes(reciterSlug: String): Long?
     suspend fun deleteSurahAudio(surahNumber: Int, reciterId: Int, reciterSlug: String)
     suspend fun deleteAllAudio(reciterId: Int, reciterSlug: String)
 }

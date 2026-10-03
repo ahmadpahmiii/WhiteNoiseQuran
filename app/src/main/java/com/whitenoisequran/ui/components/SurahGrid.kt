@@ -29,9 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whitenoisequran.R
 import com.whitenoisequran.domain.model.DownloadState
 import com.whitenoisequran.domain.model.Surah
 import com.whitenoisequran.ui.theme.CardDark
@@ -126,7 +128,7 @@ private fun SurahGridTile(
             .border(1.dp, borderColor, RoundedCornerShape(8.dp))
             .clickable(
                 enabled = state == DownloadState.FAILED,
-                onClickLabel = "Retry download",
+                onClickLabel = stringResource(R.string.cd_retry_download),
                 onClick = onRetry
             ),
         contentAlignment = Alignment.Center
@@ -180,7 +182,7 @@ private fun SurahGridTile(
                     )
                     Icon(
                         imageVector = Icons.Default.Refresh,
-                        contentDescription = "Failed, tap to retry",
+                        contentDescription = stringResource(R.string.cd_failed_tap_to_retry),
                         tint = ErrorRed,
                         modifier = Modifier.size(12.dp)
                     )

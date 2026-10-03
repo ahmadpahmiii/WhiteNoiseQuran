@@ -1,7 +1,9 @@
 package com.whitenoisequran.ui.main
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.whitenoisequran.R
 import com.whitenoisequran.data.preferences.AppPreferences
 import com.whitenoisequran.domain.model.AmbientSound
 import com.whitenoisequran.domain.model.DownloadState
@@ -13,7 +15,7 @@ import com.whitenoisequran.domain.usecase.ManageAmbientSoundsUseCase
 import com.whitenoisequran.service.AmbientSoundMixer
 import com.whitenoisequran.service.AudioPlayerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +34,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val quranRepository: QuranRepository,
     private val downloadRepository: DownloadRepository,
     private val manageAmbientSoundsUseCase: ManageAmbientSoundsUseCase,
@@ -56,20 +59,14 @@ class MainViewModel @Inject constructor(
         audioPlayerManager.playbackErrors.map { surah ->
             val downloaded =
                 uiState.value.surahs.find { it.number == surah.number }?.downloadState == DownloadState.DONE
-            if (downloaded) {
-                "Couldn't play ${surah.nameLatin}. Delete and download it again."
-            } else {
-                "${surah.nameLatin} isn't downloaded. Connect to the internet to stream it."
-            }
+            context.getString(
+                if (downloaded) R.string.msg_play_failed_downloaded else R.string.msg_play_failed_not_downloaded,
+                surah.nameLatin
+            )
         }
     )
 
-    private var measureJob: Job? = null
-
     init {
-        viewModelScope.launch {
-            manageAmbientSoundsUseCase.resetAll()
-        }
         loadData()
         observePlayerState()
     }
@@ -97,8 +94,9 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             manageAmbientSoundsUseCase.getAmbientSounds().collect { sounds ->
                 _uiState.update { it.copy(ambientSounds = sounds.ifEmpty { AmbientSound.DefaultSounds }) }
+                // Restores the saved mix without playing it
                 sounds.forEach { sound ->
-                    ambientSoundMixer.setSoundActive(sound.id, sound.isEnabled, sound.volume)
+                    ambientSoundMixer.select(sound.id, sound.isEnabled, sound.volume)
                 }
             }
         }
@@ -139,6 +137,12 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             audioPlayerManager.isBuffering.collect { buffering ->
                 _uiState.update { it.copy(isBuffering = buffering) }
+            }
+        }
+
+        viewModelScope.launch {
+            ambientSoundMixer.isPlaying.collect { playing ->
+                _uiState.update { it.copy(isAmbientPlaying = playing) }
             }
         }
 
@@ -268,7 +272,12 @@ class MainViewModel @Inject constructor(
             // One download at a time, for the reciter in use; the paused one resumes from its Surah Index
             if (previous != null && wasDownloading) {
                 downloadRepository.pauseOrCancelDownload(previous.id)
-                _messages.send("Paused the download for ${previous.name}. Switch back to resume it.")
+                _messages.send(
+                    context.getString(
+                        R.string.msg_download_paused_for_reciter,
+                        previous.name
+                    )
+                )
             }
             quranRepository.setSelectedReciter(reciter) // loadData reloads on the change
         }
@@ -277,17 +286,14 @@ class MainViewModel @Inject constructor(
     /** "Download All" asks first, with the size, since a full reciter is gigabytes. */
     fun onRequestDownloadAll() {
         val reciter = uiState.value.currentReciter ?: return
-        val missing =
-            uiState.value.surahs.filter { it.downloadState != DownloadState.DONE }.map { it.number }
-        _uiState.update { it.copy(downloadConfirm = DownloadConfirm(surahCount = missing.size)) }
-        measureJob?.cancel()
-        measureJob = viewModelScope.launch {
-            val bytes = downloadRepository.getDownloadSizeBytes(reciter.slug, missing)
-            _uiState.update { state ->
-                state.copy(
-                    downloadConfirm = state.downloadConfirm?.copy(
-                        bytes = bytes,
-                        isMeasuring = false
+        val missing = uiState.value.surahs.count { it.downloadState != DownloadState.DONE }
+        viewModelScope.launch {
+            val bytes = downloadRepository.getRemainingDownloadBytes(reciter.slug)
+            _uiState.update {
+                it.copy(
+                    downloadConfirm = DownloadConfirm(
+                        surahCount = missing,
+                        bytes = bytes
                     )
                 )
             }
@@ -295,7 +301,6 @@ class MainViewModel @Inject constructor(
     }
 
     fun dismissDownloadAll() {
-        measureJob?.cancel()
         _uiState.update { it.copy(downloadConfirm = null) }
     }
 
@@ -307,11 +312,16 @@ class MainViewModel @Inject constructor(
     }
 
     fun onToggleSound(soundId: String, isEnabled: Boolean) {
+        val sound = uiState.value.ambientSounds.find { it.id == soundId }
+        ambientSoundMixer.select(soundId, isEnabled, sound?.volume ?: 0.5f)
+        if (isEnabled) ambientSoundMixer.resumeAll() // turning a sound on plays the mix
         viewModelScope.launch {
             manageAmbientSoundsUseCase.toggleSound(soundId, isEnabled)
-            val sound = uiState.value.ambientSounds.find { it.id == soundId }
-            ambientSoundMixer.setSoundActive(soundId, isEnabled, sound?.volume ?: 0.5f)
         }
+    }
+
+    fun onToggleAmbientMix() {
+        if (ambientSoundMixer.isPlaying.value) ambientSoundMixer.pauseAll() else ambientSoundMixer.resumeAll()
     }
 
     fun onResetAllSounds() {

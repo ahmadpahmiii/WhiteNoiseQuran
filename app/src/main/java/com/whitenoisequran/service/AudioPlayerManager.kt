@@ -1,7 +1,7 @@
 package com.whitenoisequran.service
 
 import android.content.Context
-import android.content.Intent
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
@@ -41,7 +41,9 @@ class AudioPlayerManager @Inject constructor(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val exoPlayer: ExoPlayer = ExoPlayer.Builder(context).build()
+    private val exoPlayer: ExoPlayer = ExoPlayer.Builder(context)
+        .setWakeMode(C.WAKE_MODE_NETWORK) // keeps playing (and streaming) with the screen off
+        .build()
     val player: ExoPlayer get() = exoPlayer
 
     private var progressTrackingJob: Job? = null
@@ -90,7 +92,7 @@ class AudioPlayerManager @Inject constructor(
                 if (isPlaying) {
                     startProgressTracker()
                     ambientSoundMixer.resumeAll()
-                    ensureForegroundServiceStarted()
+                    AudioPlaybackService.start(context)
                 } else {
                     stopProgressTracker()
                 }
@@ -182,6 +184,7 @@ class AudioPlayerManager @Inject constructor(
                 exoPlayer.clearMediaItems() // play loads the new reciter's audio
                 _currentPositionMs.value = 0L
                 _durationMs.value = 1L
+                if (ambientSoundMixer.isPlaying.value) loadCurrentSurah() // the notification keeps the rain alive
             }
         }
     }
@@ -190,9 +193,33 @@ class AudioPlayerManager @Inject constructor(
         _currentSurah.value = surah
         if (reciter != null) _currentReciter.value = reciter
 
-        val reciterSlug = reciter?.slug ?: "Misyari-Rasyid-Al-Afasi"
-        val mediaUri = getAudioUri(surah, reciterSlug)
+        exoPlayer.setMediaItem(mediaItem(surah, reciter))
+        exoPlayer.prepare()
+        exoPlayer.play()
+        _isPlaying.value = true
+        AudioPlaybackService.start(context)
 
+        scope.launch {
+            appPreferences.setLastPlayedSurah(surah.number)
+        }
+    }
+
+    /**
+     * Loads the current surah without playing it, so the playback notification has something to show
+     * while only ambient sounds play. Returns false when nothing was loaded.
+     */
+    fun loadCurrentSurah(): Boolean {
+        if (exoPlayer.mediaItemCount > 0 && exoPlayer.playbackState != Player.STATE_IDLE) return false
+        val surah = _currentSurah.value ?: return false
+        val item = mediaItem(surah, _currentReciter.value)
+        // Streaming while offline would only fail with an error message
+        if (item.localConfiguration?.uri?.scheme != "file" && !context.isOnline()) return false
+        exoPlayer.setMediaItem(item)
+        exoPlayer.prepare()
+        return true
+    }
+
+    private fun mediaItem(surah: Surah, reciter: Reciter?): MediaItem {
         val metadata = MediaMetadata.Builder()
             .setTitle("${surah.number}. ${surah.nameLatin} (${surah.nameArabic})")
             .setSubtitle(reciter?.name ?: "White Noise Quran")
@@ -200,20 +227,10 @@ class AudioPlayerManager @Inject constructor(
             .setAlbumTitle("White Noise Quran")
             .build()
 
-        val mediaItem = MediaItem.Builder()
-            .setUri(mediaUri)
+        return MediaItem.Builder()
+            .setUri(getAudioUri(surah, reciter?.slug ?: "Misyari-Rasyid-Al-Afasi"))
             .setMediaMetadata(metadata)
             .build()
-
-        exoPlayer.setMediaItem(mediaItem)
-        exoPlayer.prepare()
-        exoPlayer.play()
-        _isPlaying.value = true
-        ensureForegroundServiceStarted()
-
-        scope.launch {
-            appPreferences.setLastPlayedSurah(surah.number)
-        }
     }
 
     fun togglePlayPause() {
@@ -227,7 +244,7 @@ class AudioPlayerManager @Inject constructor(
             } else {
                 exoPlayer.play()
                 _isPlaying.value = true
-                ensureForegroundServiceStarted()
+                AudioPlaybackService.start(context)
             }
         }
     }
@@ -260,15 +277,6 @@ class AudioPlayerManager @Inject constructor(
     fun seekTo(positionMs: Long) {
         exoPlayer.seekTo(positionMs)
         _currentPositionMs.value = positionMs
-    }
-
-    private fun ensureForegroundServiceStarted() {
-        try {
-            val intent = Intent(context, AudioPlaybackService::class.java)
-            context.startService(intent)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
     }
 
     private fun getAudioUri(surah: Surah, reciterSlug: String): String {

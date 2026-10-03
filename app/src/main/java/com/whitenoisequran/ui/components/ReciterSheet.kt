@@ -21,7 +21,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.whitenoisequran.R
 import com.whitenoisequran.domain.model.Reciter
 import com.whitenoisequran.ui.theme.AppTheme
 import com.whitenoisequran.ui.theme.SurfaceDark
@@ -59,12 +61,12 @@ fun ReciterSheet(
                 .padding(horizontal = 20.dp)
         ) {
             Text(
-                text = "Choose Reciter",
+                text = stringResource(R.string.choose_reciter_title),
                 style = AppTheme.typography.headlineMedium,
                 color = TextPrimary
             )
             Text(
-                text = "Downloaded surahs play without internet; the rest stream.",
+                text = stringResource(R.string.reciter_sheet_hint),
                 style = AppTheme.typography.bodySmall,
                 color = TextMuted
             )

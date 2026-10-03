@@ -48,9 +48,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringArrayResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whitenoisequran.R
 import com.whitenoisequran.domain.model.BulkDownloadProgress
 import com.whitenoisequran.domain.model.DownloadState
 import com.whitenoisequran.domain.model.Surah
@@ -85,8 +89,9 @@ fun SurahListSheet(
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var downloadedOnly by remember { mutableStateOf(false) }
+    val meanings = stringArrayResource(R.array.surah_meanings) // in the app's language
 
-    val filteredSurahs = remember(surahs, searchQuery, downloadedOnly) {
+    val filteredSurahs = remember(surahs, searchQuery, downloadedOnly, meanings) {
         val query = searchQuery.trim().lowercase()
         surahs.filter {
             (!downloadedOnly || it.downloadState == DownloadState.DONE) && (
@@ -94,7 +99,7 @@ fun SurahListSheet(
                             it.number.toString().startsWith(query) || // "4" finds 4 and 40–49
                 it.nameLatin.lowercase().contains(query) ||
                 it.nameArabic.contains(query) ||
-                it.translationId.lowercase().contains(query)
+                            meanings[it.number - 1].lowercase().contains(query)
                     )
         }
     }
@@ -134,12 +139,12 @@ fun SurahListSheet(
             ) {
                 Column {
                     Text(
-                        text = "Surah Index",
+                        text = stringResource(R.string.surah_index_title),
                         style = AppTheme.typography.headlineMedium,
                         color = TextPrimary
                     )
                     Text(
-                        text = "$downloadedCount / 114 Downloaded for Offline",
+                        text = stringResource(R.string.downloaded_for_offline, downloadedCount),
                         style = AppTheme.typography.bodySmall,
                         color = if (downloadedCount > 0) SuccessGreen else TextMuted
                     )
@@ -148,7 +153,7 @@ fun SurahListSheet(
                 IconButton(onClick = onDismiss) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Close",
+                        contentDescription = stringResource(R.string.close),
                         tint = TextSecondary
                     )
                 }
@@ -184,10 +189,23 @@ fun SurahListSheet(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text = when {
-                                downloadProgress.isWaitingForNetwork -> "Waiting for connection ($downloadedCount/114)"
-                                downloadProgress.isRunning -> "Downloading ($downloadedCount/114)"
-                                downloadedCount > 0 -> "Download remaining (${114 - downloadedCount})"
-                                else -> "Download All"
+                                downloadProgress.isWaitingForNetwork ->
+                                    stringResource(
+                                        R.string.waiting_for_connection_count,
+                                        downloadedCount
+                                    )
+
+                                downloadProgress.isRunning -> stringResource(
+                                    R.string.downloading_count,
+                                    downloadedCount
+                                )
+
+                                downloadedCount > 0 -> stringResource(
+                                    R.string.download_remaining,
+                                    114 - downloadedCount
+                                )
+
+                                else -> stringResource(R.string.download_all)
                             },
                             style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
                             color = tint
@@ -214,13 +232,13 @@ fun SurahListSheet(
                     ) {
                         Icon(
                             imageVector = Icons.Default.DeleteOutline,
-                            contentDescription = "Delete All Audio",
+                            contentDescription = stringResource(R.string.cd_delete_all_audio),
                             tint = ErrorRed.copy(alpha = 0.85f),
                             modifier = Modifier.size(16.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "Free Space",
+                            text = stringResource(R.string.free_space),
                             style = AppTheme.typography.labelSmall,
                             color = ErrorRed.copy(alpha = 0.85f)
                         )
@@ -236,7 +254,7 @@ fun SurahListSheet(
                 onValueChange = { searchQuery = it },
                 placeholder = {
                     Text(
-                        text = "Search by number or name…",
+                        text = stringResource(R.string.search_surah_hint),
                         style = AppTheme.typography.bodyMedium,
                         color = TextMuted
                     )
@@ -244,7 +262,7 @@ fun SurahListSheet(
                 leadingIcon = {
                     Icon(
                         imageVector = Icons.Default.Search,
-                        contentDescription = "Search",
+                        contentDescription = stringResource(R.string.search),
                         tint = GoldPrimary
                     )
                 },
@@ -281,7 +299,7 @@ fun SurahListSheet(
                             modifier = Modifier.size(32.dp)
                         )
                         Text(
-                            text = "Loading Surah audio files…",
+                            text = stringResource(R.string.loading_surahs),
                             style = AppTheme.typography.bodyMedium,
                             color = TextSecondary
                         )
@@ -296,14 +314,18 @@ fun SurahListSheet(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = if (filteredSurahs.size == 1) "1 Surah" else "${filteredSurahs.size} Surahs",
+                        text = pluralStringResource(
+                            R.plurals.surah_count,
+                            filteredSurahs.size,
+                            filteredSurahs.size
+                        ),
                         style = AppTheme.typography.labelMedium,
                         color = TextMuted,
                         modifier = Modifier.weight(1f)
                     )
                     listOf(
-                        false to "All",
-                        true to "Downloaded"
+                        false to stringResource(R.string.filter_all),
+                        true to stringResource(R.string.filter_downloaded)
                     ).forEach { (onlyDownloaded, label) ->
                         val selected = downloadedOnly == onlyDownloaded
                         FilterChip(
@@ -336,9 +358,9 @@ fun SurahListSheet(
                         item {
                             Text(
                                 text = if (searchQuery.isBlank()) {
-                                    "Nothing downloaded yet. Downloaded surahs play without internet."
+                                    stringResource(R.string.nothing_downloaded)
                                 } else {
-                                    "No surah matches \"${searchQuery.trim()}\""
+                                    stringResource(R.string.no_surah_match, searchQuery.trim())
                                 },
                                 style = AppTheme.typography.bodyMedium,
                                 color = TextMuted,
@@ -354,6 +376,7 @@ fun SurahListSheet(
 
                         SurahListItem(
                             surah = surah,
+                            meaning = meanings[surah.number - 1],
                             isPlaying = isPlaying,
                             downloadPercent = downloadProgress.surahPercent[surah.number],
                             onClick = {
@@ -374,6 +397,7 @@ fun SurahListSheet(
 @Composable
 private fun SurahListItem(
     surah: Surah,
+    meaning: String,
     isPlaying: Boolean,
     downloadPercent: Int?,
     onClick: () -> Unit,
@@ -423,7 +447,7 @@ private fun SurahListItem(
                     if (isPlaying) {
                         Icon(
                             imageVector = Icons.Default.GraphicEq,
-                            contentDescription = "Playing",
+                            contentDescription = stringResource(R.string.cd_playing),
                             tint = SurfaceDark,
                             modifier = Modifier.size(18.dp)
                         )
@@ -449,7 +473,11 @@ private fun SurahListItem(
                         color = if (isPlaying) GoldLight else TextPrimary
                     )
                     Text(
-                        text = "${surah.numberOfAyah} Ayat · ${surah.translationId}",
+                        text = stringResource(
+                            R.string.surah_ayat_meaning,
+                            surah.numberOfAyah,
+                            meaning
+                        ),
                         style = AppTheme.typography.bodySmall.copy(fontSize = 12.sp),
                         color = TextMuted
                     )
@@ -473,7 +501,7 @@ private fun SurahListItem(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
-                            contentDescription = "Downloaded",
+                            contentDescription = stringResource(R.string.cd_downloaded),
                             tint = SuccessGreen,
                             modifier = Modifier.size(18.dp)
                         )
@@ -483,7 +511,7 @@ private fun SurahListItem(
                         ) {
                             Icon(
                                 imageVector = Icons.Default.DeleteOutline,
-                                contentDescription = "Delete from storage",
+                                contentDescription = stringResource(R.string.cd_delete_from_storage),
                                 tint = TextMuted,
                                 modifier = Modifier.size(18.dp)
                             )
@@ -524,7 +552,7 @@ private fun SurahListItem(
                                 }
                                 Icon(
                                     imageVector = Icons.Default.Close,
-                                    contentDescription = "Cancel download",
+                                    contentDescription = stringResource(R.string.cd_cancel_download),
                                     tint = TealLight,
                                     modifier = Modifier.size(12.dp)
                                 )
@@ -540,7 +568,7 @@ private fun SurahListItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Download failed, retry",
+                            contentDescription = stringResource(R.string.cd_download_failed_retry),
                             tint = ErrorRed,
                             modifier = Modifier.size(18.dp)
                         )
@@ -554,7 +582,7 @@ private fun SurahListItem(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Download,
-                            contentDescription = "Download Surah",
+                            contentDescription = stringResource(R.string.cd_download_surah),
                             tint = TextSecondary,
                             modifier = Modifier.size(18.dp)
                         )

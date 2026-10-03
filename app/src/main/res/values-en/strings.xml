@@ -1,0 +1,274 @@
+<?xml version="1.0" encoding="utf-8"?><!-- English. Keep keys in sync with values/strings.xml (LocalizationParityTest). -->
+<resources>
+    <!-- Common -->
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="download">Download</string>
+    <string name="close">Close</string>
+    <string name="back">Back</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+
+    <!-- Main screen -->
+    <string name="cd_surah_list">Surah list</string>
+    <string name="cd_choose_surah">Choose surah</string>
+    <string name="cd_change_reciter">Change reciter</string>
+    <string name="surah_info">%1$s · Surah %2$d · %3$d Verses</string>
+    <string name="delete_all_title">Delete downloaded audio?</string>
+    <plurals name="delete_all_body">
+        <item quantity="one">Removes %1$d surah (%2$s) of %3$s.</item>
+        <item quantity="other">Removes %1$d surahs (%2$s) of %3$s.</item>
+    </plurals>
+    <string name="delete_all_running">The running download stops.</string>
+    <string name="delete_all_later">You can stream or download them again later.</string>
+    <string name="this_reciter">this reciter</string>
+    <string name="download_all_title">Download all 114 surahs?</string>
+    <plurals name="download_some_title">
+        <item quantity="one">Download %1$d surah?</item>
+        <item quantity="other">Download %1$d surahs?</item>
+    </plurals>
+    <string name="download_size_about">About %1$s.</string>
+    <string name="download_wifi_note">Wi-Fi recommended. Downloaded surahs play without internet.</string>
+    <string name="msg_play_failed_downloaded">Couldn\'t play %1$s. Delete and download it again.</string>
+    <string name="msg_play_failed_not_downloaded">%1$s isn\'t downloaded. Connect to the internet to stream it.</string>
+    <string name="msg_download_paused_for_reciter">Paused the download for %1$s. Switch back to resume it.</string>
+
+    <!-- Player controls -->
+    <string name="cd_quran_volume">Quran volume</string>
+    <string name="quran_volume_percent">Quran %1$d%%</string>
+    <string name="cd_previous_surah">Previous surah</string>
+    <string name="cd_next_surah">Next surah</string>
+    <string name="cd_loading_tap_to_pause">Loading, tap to pause</string>
+    <string name="sleep_timer">Sleep Timer</string>
+    <string name="timer">Timer</string>
+
+    <!-- Sleep timer sheet -->
+    <string name="stops_in">Stops in %1$s</string>
+    <string name="cancel_timer">Cancel Timer</string>
+    <string name="cd_decrease">Decrease</string>
+    <string name="cd_increase">Increase</string>
+    <string name="minutes">minutes</string>
+    <string name="set_timer">Set Timer (%1$d min)</string>
+
+    <!-- Ambient mixer -->
+    <string name="ambient_title">Ambient Soundscape</string>
+    <plurals name="ambient_sound_count">
+        <item quantity="one">%1$d sound</item>
+        <item quantity="other">%1$d sounds</item>
+    </plurals>
+    <string name="cd_play_ambient">Play ambient sounds</string>
+    <string name="cd_pause_ambient">Pause ambient sounds</string>
+    <string name="reset_all">Reset All</string>
+    <string name="ambient_footer">✨ Mix ambient soundscapes with Quran recitation</string>
+    <string name="sound_state_active">ACTIVE</string>
+    <string name="sound_state_paused">PAUSED</string>
+    <string name="sound_state_off">OFF</string>
+    <string name="sound_calming_rain">Steady Rain</string>
+    <string name="sound_calming_rain_subtitle">Deep, soothing downpour</string>
+    <string name="sound_soft_rain">Gentle Drizzle</string>
+    <string name="sound_soft_rain_subtitle">Light, peaceful droplets</string>
+    <string name="sound_rain_bird">Rain &amp; Songbirds</string>
+    <string name="sound_rain_bird_subtitle">Morning drizzle with birds</string>
+    <string name="sound_forest">Lush Forest</string>
+    <string name="sound_forest_subtitle">Woodland breeze &amp; trees</string>
+    <string name="sound_ocean">Ocean Waves</string>
+    <string name="sound_ocean_subtitle">Rhythmic tide &amp; calm surf</string>
+    <string name="sound_train">Night Train</string>
+    <string name="sound_train_subtitle">Rhythmic tracks for sleep</string>
+
+    <!-- Surah list sheet -->
+    <string name="surah_index_title">Surah Index</string>
+    <string name="downloaded_for_offline">%1$d / 114 downloaded for offline</string>
+    <string name="waiting_for_connection_count">Waiting for connection (%1$d/114)</string>
+    <string name="downloading_count">Downloading (%1$d/114)</string>
+    <string name="download_remaining">Download remaining (%1$d)</string>
+    <string name="download_all">Download All</string>
+    <string name="cd_delete_all_audio">Delete all audio</string>
+    <string name="free_space">Free Space</string>
+    <string name="search_surah_hint">Search by number or name…</string>
+    <string name="search">Search</string>
+    <string name="loading_surahs">Loading surahs…</string>
+    <plurals name="surah_count">
+        <item quantity="one">%1$d Surah</item>
+        <item quantity="other">%1$d Surahs</item>
+    </plurals>
+    <string name="filter_all">All</string>
+    <string name="filter_downloaded">Downloaded</string>
+    <string name="nothing_downloaded">Nothing downloaded yet. Downloaded surahs play without internet.</string>
+    <string name="no_surah_match">No surah matches \"%1$s\"</string>
+    <string name="cd_playing">Playing</string>
+    <string name="surah_ayat_meaning">%1$d verses · %2$s</string>
+    <string name="cd_downloaded">Downloaded</string>
+    <string name="cd_delete_from_storage">Delete from storage</string>
+    <string name="cd_cancel_download">Cancel download</string>
+    <string name="cd_download_failed_retry">Download failed, retry</string>
+    <string name="cd_download_surah">Download surah</string>
+
+    <!-- Download screen -->
+    <string name="downloading_reciter">Downloading %1$s</string>
+    <string name="reciter_fallback">Reciter</string>
+    <string name="all_surahs_offline">All surahs available offline</string>
+    <string name="waiting_for_connection">Waiting for connection…</string>
+    <string name="preparing_offline">Preparing offline mode…</string>
+    <string name="failed_resume_to_retry">%1$d failed · resume to retry</string>
+    <plurals name="not_downloaded_resume">
+        <item quantity="one">%1$d surah not downloaded · resume to get it</item>
+        <item quantity="other">%1$d surahs not downloaded · resume to get them</item>
+    </plurals>
+    <string name="paused">Paused</string>
+    <string name="surahs_progress">%1$d / 114 Surahs</string>
+    <string name="eta_estimating">Estimating time…</string>
+    <string name="eta_under_minute">Less than a minute left</string>
+    <string name="eta_minutes">~%1$d min left</string>
+    <string name="eta_hours_minutes">~%1$d h %2$d min left</string>
+    <string name="pause_download">Pause download</string>
+    <string name="resume_download">Resume download</string>
+    <string name="start_listening">Start Listening</string>
+    <string name="play_available">Play Available Surahs</string>
+    <string name="download_once_hint">This only happens once per reciter</string>
+    <string name="cd_retry_download">Retry download</string>
+    <string name="cd_failed_tap_to_retry">Failed, tap to retry</string>
+
+    <!-- Reciters -->
+    <string name="choose_reciter_title">Choose Reciter</string>
+    <string name="reciter_sheet_hint">Downloaded surahs play without internet; the rest stream.</string>
+    <string name="popular">Popular</string>
+    <string name="streams_online">Streams online</string>
+    <string name="available_offline">Available offline</string>
+    <string name="downloaded_of_114">%1$d / 114 downloaded</string>
+    <string name="cd_selected">Selected</string>
+    <string name="choose_your_reciter">Choose Your Reciter</string>
+    <string name="continue_btn">Continue</string>
+
+    <!-- Notifications -->
+    <string name="channel_playback">Quran playback</string>
+    <string name="channel_playback_desc">Controls and status for playback</string>
+    <string name="channel_downloads">Quran downloads</string>
+    <string name="notif_download_complete_title">Download complete</string>
+    <string name="notif_download_complete_text">All 114 surahs are available offline</string>
+    <plurals name="notif_download_failed_title">
+        <item quantity="one">%1$d surah couldn\'t be downloaded</item>
+        <item quantity="other">%1$d surahs couldn\'t be downloaded</item>
+    </plurals>
+    <string name="notif_tap_to_retry">Tap to retry</string>
+    <string name="notif_downloading_title">Downloading Quran audio</string>
+    <string name="notif_downloading_bulk">%1$d of 114 surahs</string>
+
+    <!-- Surah meanings, index = surah number - 1 -->
+    <string-array name="surah_meanings">
+        <item>The Opener</item>
+        <item>The Cow</item>
+        <item>Family of Imran</item>
+        <item>The Women</item>
+        <item>The Table Spread</item>
+        <item>The Cattle</item>
+        <item>The Heights</item>
+        <item>The Spoils of War</item>
+        <item>The Repentance</item>
+        <item>Jonah</item>
+        <item>Hud</item>
+        <item>Joseph</item>
+        <item>The Thunder</item>
+        <item>Abraham</item>
+        <item>The Rocky Tract</item>
+        <item>The Bee</item>
+        <item>The Night Journey</item>
+        <item>The Cave</item>
+        <item>Mary</item>
+        <item>Ta-Ha</item>
+        <item>The Prophets</item>
+        <item>The Pilgrimage</item>
+        <item>The Believers</item>
+        <item>The Light</item>
+        <item>The Criterion</item>
+        <item>The Poets</item>
+        <item>The Ant</item>
+        <item>The Stories</item>
+        <item>The Spider</item>
+        <item>The Romans</item>
+        <item>Luqman</item>
+        <item>The Prostration</item>
+        <item>The Combined Forces</item>
+        <item>Sheba</item>
+        <item>Originator</item>
+        <item>Ya-Sin</item>
+        <item>Those Who Set the Ranks</item>
+        <item>The Letter Sad</item>
+        <item>The Troops</item>
+        <item>The Forgiver</item>
+        <item>Explained in Detail</item>
+        <item>The Consultation</item>
+        <item>The Ornaments of Gold</item>
+        <item>The Smoke</item>
+        <item>The Crouching</item>
+        <item>The Wind-Curved Sandhills</item>
+        <item>Muhammad</item>
+        <item>The Victory</item>
+        <item>The Rooms</item>
+        <item>The Letter Qaf</item>
+        <item>The Winnowing Winds</item>
+        <item>The Mount</item>
+        <item>The Star</item>
+        <item>The Moon</item>
+        <item>The Most Merciful</item>
+        <item>The Inevitable</item>
+        <item>The Iron</item>
+        <item>The Pleading Woman</item>
+        <item>The Exile</item>
+        <item>The Woman Examined</item>
+        <item>The Ranks</item>
+        <item>Friday</item>
+        <item>The Hypocrites</item>
+        <item>The Mutual Disillusion</item>
+        <item>The Divorce</item>
+        <item>The Prohibition</item>
+        <item>The Sovereignty</item>
+        <item>The Pen</item>
+        <item>The Reality</item>
+        <item>The Ascending Stairways</item>
+        <item>Noah</item>
+        <item>The Jinn</item>
+        <item>The Enshrouded One</item>
+        <item>The Cloaked One</item>
+        <item>The Resurrection</item>
+        <item>Man</item>
+        <item>The Emissaries</item>
+        <item>The Tidings</item>
+        <item>Those Who Drag Forth</item>
+        <item>He Frowned</item>
+        <item>The Overthrowing</item>
+        <item>The Cleaving</item>
+        <item>The Defrauding</item>
+        <item>The Sundering</item>
+        <item>The Mansions of the Stars</item>
+        <item>The Night Comer</item>
+        <item>The Most High</item>
+        <item>The Overwhelming</item>
+        <item>The Dawn</item>
+        <item>The City</item>
+        <item>The Sun</item>
+        <item>The Night</item>
+        <item>The Morning Hours</item>
+        <item>The Relief</item>
+        <item>The Fig</item>
+        <item>The Clot</item>
+        <item>The Power</item>
+        <item>The Clear Proof</item>
+        <item>The Earthquake</item>
+        <item>The Chargers</item>
+        <item>The Calamity</item>
+        <item>The Rivalry in Increase</item>
+        <item>Time</item>
+        <item>The Slanderer</item>
+        <item>The Elephant</item>
+        <item>Quraysh</item>
+        <item>Small Kindnesses</item>
+        <item>Abundance</item>
+        <item>The Disbelievers</item>
+        <item>The Divine Support</item>
+        <item>The Palm Fiber</item>
+        <item>Sincerity</item>
+        <item>The Daybreak</item>
+        <item>Mankind</item>
+    </string-array>
+</resources>

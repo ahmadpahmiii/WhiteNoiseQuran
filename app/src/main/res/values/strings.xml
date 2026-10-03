@@ -1,20 +1,273 @@
-<resources>
-    <string name="app_name">White Noise Quran</string>
-    <string name="choose_reciter">Choose Your Reciter</string>
-    <string name="choose_reciter_arabic">اختر القارئ</string>
-    <string name="popular">Popular</string>
-    <string name="continue_btn">Continue</string>
-    <string name="downloading_title">Downloading %1$s</string>
-    <string name="downloading_subtitle">Preparing offline mode…</string>
-    <string name="download_progress_label">%1$d / %2$d Surahs Ready</string>
-    <string name="download_hint">This only happens once per reciter</string>
-    <string name="play_available">Play Available Surahs</string>
-    <string name="ambient_mix">Ambient Mix</string>
-    <string name="more_sounds_soon">✨ More sounds coming soon</string>
-    <string name="select_surah">Select Surah</string>
-    <string name="search_surah_hint">Search by number or name…</string>
-    <string name="sleep_timer">Sleep Timer</string>
-    <string name="cancel_timer">Cancel Timer</string>
-    <string name="set_timer">Set Timer</string>
-    <string name="stops_in">Stops in %1$s</string>
+<?xml version="1.0" encoding="utf-8"?><!-- Default language: Bahasa Indonesia. Translations: values-ms (Melayu), values-en (English).
+     Every key here must exist in both; LocalizationParityTest checks it. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:locale="id">
+    <string name="app_name" translatable="false">White Noise Quran</string>
+    <string name="choose_reciter_arabic" translatable="false">اختر القارئ</string>
+    <string name="notif_downloading_single" translatable="false">Surah %1$d</string>
+
+    <!-- Common -->
+    <string name="cancel">Batal</string>
+    <string name="delete">Hapus</string>
+    <string name="download">Unduh</string>
+    <string name="close">Tutup</string>
+    <string name="back">Kembali</string>
+    <string name="play">Putar</string>
+    <string name="pause">Jeda</string>
+
+    <!-- Main screen -->
+    <string name="cd_surah_list">Daftar surah</string>
+    <string name="cd_choose_surah">Pilih surah</string>
+    <string name="cd_change_reciter">Ganti qari</string>
+    <string name="surah_info">%1$s · Surah %2$d · %3$d Ayat</string>
+    <string name="delete_all_title">Hapus audio yang diunduh?</string>
+    <plurals name="delete_all_body">
+        <item quantity="other">Menghapus %1$d surah (%2$s) milik %3$s.</item>
+    </plurals>
+    <string name="delete_all_running">Unduhan yang sedang berjalan akan berhenti.</string>
+    <string name="delete_all_later">Surah bisa diputar online atau diunduh lagi nanti.</string>
+    <string name="this_reciter">qari ini</string>
+    <string name="download_all_title">Unduh semua 114 surah?</string>
+    <plurals name="download_some_title">
+        <item quantity="other">Unduh %1$d surah?</item>
+    </plurals>
+    <string name="download_size_about">Sekitar %1$s.</string>
+    <string name="download_wifi_note">Disarankan pakai Wi-Fi. Surah yang diunduh bisa diputar tanpa internet.</string>
+    <string name="msg_play_failed_downloaded">Tidak bisa memutar %1$s. Hapus lalu unduh ulang.</string>
+    <string name="msg_play_failed_not_downloaded">%1$s belum diunduh. Sambungkan ke internet untuk memutarnya online.</string>
+    <string name="msg_download_paused_for_reciter">Unduhan %1$s dijeda. Pilih qari ini lagi untuk melanjutkan.</string>
+
+    <!-- Player controls -->
+    <string name="cd_quran_volume">Volume Al-Qur\'an</string>
+    <string name="quran_volume_percent">Qur\'an %1$d%%</string>
+    <string name="cd_previous_surah">Surah sebelumnya</string>
+    <string name="cd_next_surah">Surah berikutnya</string>
+    <string name="cd_loading_tap_to_pause">Memuat, ketuk untuk jeda</string>
+    <string name="sleep_timer">Timer Tidur</string>
+    <string name="timer">Timer</string>
+
+    <!-- Sleep timer sheet -->
+    <string name="stops_in">Berhenti dalam %1$s</string>
+    <string name="cancel_timer">Batalkan Timer</string>
+    <string name="cd_decrease">Kurangi</string>
+    <string name="cd_increase">Tambah</string>
+    <string name="minutes">menit</string>
+    <string name="set_timer">Pasang Timer (%1$d menit)</string>
+
+    <!-- Ambient mixer -->
+    <string name="ambient_title">Suara Latar</string>
+    <plurals name="ambient_sound_count">
+        <item quantity="other">%1$d suara</item>
+    </plurals>
+    <string name="cd_play_ambient">Putar suara latar</string>
+    <string name="cd_pause_ambient">Jeda suara latar</string>
+    <string name="reset_all">Matikan Semua</string>
+    <string name="ambient_footer">✨ Padukan suara latar dengan lantunan Al-Qur\'an</string>
+    <string name="sound_state_active">AKTIF</string>
+    <string name="sound_state_paused">DIJEDA</string>
+    <string name="sound_state_off">MATI</string>
+    <string name="sound_calming_rain">Hujan Deras</string>
+    <string name="sound_calming_rain_subtitle">Hujan lebat yang menenangkan</string>
+    <string name="sound_soft_rain">Gerimis</string>
+    <string name="sound_soft_rain_subtitle">Rintik ringan yang damai</string>
+    <string name="sound_rain_bird">Hujan &amp; Kicau Burung</string>
+    <string name="sound_rain_bird_subtitle">Gerimis pagi dengan burung</string>
+    <string name="sound_forest">Hutan Rimbun</string>
+    <string name="sound_forest_subtitle">Semilir angin di pepohonan</string>
+    <string name="sound_ocean">Ombak Laut</string>
+    <string name="sound_ocean_subtitle">Deburan ombak yang tenang</string>
+    <string name="sound_train">Kereta Malam</string>
+    <string name="sound_train_subtitle">Suara rel pengantar tidur</string>
+
+    <!-- Surah list sheet -->
+    <string name="surah_index_title">Daftar Surah</string>
+    <string name="downloaded_for_offline">%1$d / 114 diunduh untuk offline</string>
+    <string name="waiting_for_connection_count">Menunggu koneksi (%1$d/114)</string>
+    <string name="downloading_count">Mengunduh (%1$d/114)</string>
+    <string name="download_remaining">Unduh sisanya (%1$d)</string>
+    <string name="download_all">Unduh Semua</string>
+    <string name="cd_delete_all_audio">Hapus semua audio</string>
+    <string name="free_space">Kosongkan Ruang</string>
+    <string name="search_surah_hint">Cari nomor atau nama surah…</string>
+    <string name="search">Cari</string>
+    <string name="loading_surahs">Memuat surah…</string>
+    <plurals name="surah_count">
+        <item quantity="other">%1$d Surah</item>
+    </plurals>
+    <string name="filter_all">Semua</string>
+    <string name="filter_downloaded">Terunduh</string>
+    <string name="nothing_downloaded">Belum ada yang diunduh. Surah yang diunduh bisa diputar tanpa internet.</string>
+    <string name="no_surah_match">Tidak ada surah yang cocok dengan \"%1$s\"</string>
+    <string name="cd_playing">Sedang diputar</string>
+    <string name="surah_ayat_meaning">%1$d ayat · %2$s</string>
+    <string name="cd_downloaded">Sudah diunduh</string>
+    <string name="cd_delete_from_storage">Hapus dari penyimpanan</string>
+    <string name="cd_cancel_download">Batalkan unduhan</string>
+    <string name="cd_download_failed_retry">Unduhan gagal, coba lagi</string>
+    <string name="cd_download_surah">Unduh surah</string>
+
+    <!-- Download screen -->
+    <string name="downloading_reciter">Mengunduh %1$s</string>
+    <string name="reciter_fallback">Qari</string>
+    <string name="all_surahs_offline">Semua surah tersedia offline</string>
+    <string name="waiting_for_connection">Menunggu koneksi…</string>
+    <string name="preparing_offline">Menyiapkan mode offline…</string>
+    <string name="failed_resume_to_retry">%1$d gagal · lanjutkan untuk coba lagi</string>
+    <plurals name="not_downloaded_resume">
+        <item quantity="other">%1$d surah belum diunduh · lanjutkan untuk mengunduhnya</item>
+    </plurals>
+    <string name="paused">Dijeda</string>
+    <string name="surahs_progress">%1$d / 114 Surah</string>
+    <string name="eta_estimating">Memperkirakan waktu…</string>
+    <string name="eta_under_minute">Kurang dari semenit lagi</string>
+    <string name="eta_minutes">~%1$d menit lagi</string>
+    <string name="eta_hours_minutes">~%1$d jam %2$d menit lagi</string>
+    <string name="pause_download">Jeda unduhan</string>
+    <string name="resume_download">Lanjutkan unduhan</string>
+    <string name="start_listening">Mulai Mendengarkan</string>
+    <string name="play_available">Putar Surah yang Tersedia</string>
+    <string name="download_once_hint">Hanya perlu sekali untuk tiap qari</string>
+    <string name="cd_retry_download">Coba unduh lagi</string>
+    <string name="cd_failed_tap_to_retry">Gagal, ketuk untuk coba lagi</string>
+
+    <!-- Reciters -->
+    <string name="choose_reciter_title">Pilih Qari</string>
+    <string name="reciter_sheet_hint">Surah yang diunduh bisa diputar tanpa internet; sisanya diputar online.</string>
+    <string name="popular">Populer</string>
+    <string name="streams_online">Diputar online</string>
+    <string name="available_offline">Tersedia offline</string>
+    <string name="downloaded_of_114">%1$d / 114 diunduh</string>
+    <string name="cd_selected">Dipilih</string>
+    <string name="choose_your_reciter">Pilih Qari Favoritmu</string>
+    <string name="continue_btn">Lanjut</string>
+
+    <!-- Notifications -->
+    <string name="channel_playback">Pemutaran Al-Qur\'an</string>
+    <string name="channel_playback_desc">Kontrol dan status pemutaran</string>
+    <string name="channel_downloads">Unduhan Al-Qur\'an</string>
+    <string name="notif_download_complete_title">Unduhan selesai</string>
+    <string name="notif_download_complete_text">Semua 114 surah tersedia offline</string>
+    <plurals name="notif_download_failed_title">
+        <item quantity="other">%1$d surah gagal diunduh</item>
+    </plurals>
+    <string name="notif_tap_to_retry">Ketuk untuk coba lagi</string>
+    <string name="notif_downloading_title">Mengunduh audio Al-Qur\'an</string>
+    <string name="notif_downloading_bulk">%1$d dari 114 surah</string>
+
+    <!-- Surah meanings, index = surah number - 1 -->
+    <string-array name="surah_meanings">
+        <item>Pembukaan</item> <!-- 1 Al-Fatihah -->
+        <item>Sapi Betina</item> <!-- 2 Al-Baqarah -->
+        <item>Keluarga Imran</item> <!-- 3 Ali 'Imran -->
+        <item>Wanita</item> <!-- 4 An-Nisa' -->
+        <item>Hidangan</item> <!-- 5 Al-Ma'idah -->
+        <item>Binatang Ternak</item> <!-- 6 Al-An'am -->
+        <item>Tempat Tertinggi</item> <!-- 7 Al-A'raf -->
+        <item>Rampasan Perang</item> <!-- 8 Al-Anfal -->
+        <item>Pengampunan</item> <!-- 9 At-Taubah -->
+        <item>Nabi Yunus</item> <!-- 10 Yunus -->
+        <item>Nabi Hud</item> <!-- 11 Hud -->
+        <item>Nabi Yusuf</item> <!-- 12 Yusuf -->
+        <item>Guruh</item> <!-- 13 Ar-Ra'd -->
+        <item>Nabi Ibrahim</item> <!-- 14 Ibrahim -->
+        <item>Bukit Hijr</item> <!-- 15 Al-Hijr -->
+        <item>Lebah</item> <!-- 16 An-Nahl -->
+        <item>Perjalanan Malam</item> <!-- 17 Al-Isra' -->
+        <item>Gua</item> <!-- 18 Al-Kahf -->
+        <item>Maryam</item> <!-- 19 Maryam -->
+        <item>Taha</item> <!-- 20 Taha -->
+        <item>Para Nabi</item> <!-- 21 Al-Anbiya' -->
+        <item>Haji</item> <!-- 22 Al-Hajj -->
+        <item>Orang-Orang Beriman</item> <!-- 23 Al-Mu'minun -->
+        <item>Cahaya</item> <!-- 24 An-Nur -->
+        <item>Pembeda</item> <!-- 25 Al-Furqan -->
+        <item>Para Penyair</item> <!-- 26 Asy-Syu'ara' -->
+        <item>Semut</item> <!-- 27 An-Naml -->
+        <item>Kisah-Kisah</item> <!-- 28 Al-Qasas -->
+        <item>Laba-Laba</item> <!-- 29 Al-'Ankabut -->
+        <item>Bangsa Romawi</item> <!-- 30 Ar-Rum -->
+        <item>Keluarga Luqman</item> <!-- 31 Luqman -->
+        <item>Sajdah</item> <!-- 32 As-Sajdah -->
+        <item>Golongan Bersekutu</item> <!-- 33 Al-Ahzab -->
+        <item>Kaum Saba\'</item> <!-- 34 Saba' -->
+        <item>Pencipta</item> <!-- 35 Fatir -->
+        <item>Yasin</item> <!-- 36 Yasin -->
+        <item>Barisan-Barisan</item> <!-- 37 As-Saffat -->
+        <item>Sad</item> <!-- 38 Sad -->
+        <item>Rombongan</item> <!-- 39 Az-Zumar -->
+        <item>Yang Mengampuni</item> <!-- 40 Ghafir -->
+        <item>Yang Dijelaskan</item> <!-- 41 Fussilat -->
+        <item>Musyawarah</item> <!-- 42 Asy-Syura -->
+        <item>Perhiasan</item> <!-- 43 Az-Zukhruf -->
+        <item>Kabut Asap</item> <!-- 44 Ad-Dukhan -->
+        <item>Yang Berlutut</item> <!-- 45 Al-Jasiyah -->
+        <item>Bukit Pasir</item> <!-- 46 Al-Ahqaf -->
+        <item>Nabi Muhammad</item> <!-- 47 Muhammad -->
+        <item>Kemenangan</item> <!-- 48 Al-Fath -->
+        <item>Kamar-Kamar</item> <!-- 49 Al-Hujurat -->
+        <item>Qaf</item> <!-- 50 Qaf -->
+        <item>Angin yang Menerbangkan</item> <!-- 51 Az-Zariyat -->
+        <item>Bukit Tursina</item> <!-- 52 At-Tur -->
+        <item>Bintang</item> <!-- 53 An-Najm -->
+        <item>Bulan</item> <!-- 54 Al-Qamar -->
+        <item>Maha Pengasih</item> <!-- 55 Ar-Rahman -->
+        <item>Hari Kiamat</item> <!-- 56 Al-Waqi'ah -->
+        <item>Besi</item> <!-- 57 Al-Hadid -->
+        <item>Gugatan</item> <!-- 58 Al-Mujadilah -->
+        <item>Pengusiran</item> <!-- 59 Al-Hasyr -->
+        <item>Wanita yang Diuji</item> <!-- 60 Al-Mumtahanah -->
+        <item>Barisan</item> <!-- 61 As-Saff -->
+        <item>Hari Jum\'at</item> <!-- 62 Al-Jumu'ah -->
+        <item>Orang-Orang Munafik</item> <!-- 63 Al-Munafiqun -->
+        <item>Hari Ditampakkan Kesalahan</item> <!-- 64 At-Tagabun -->
+        <item>Talak</item> <!-- 65 At-Talaq -->
+        <item>Pengharaman</item> <!-- 66 At-Tahrim -->
+        <item>Kerajaan</item> <!-- 67 Al-Mulk -->
+        <item>Pena</item> <!-- 68 Al-Qalam -->
+        <item>Hari Kiamat</item> <!-- 69 Al-Haqqah -->
+        <item>Tempat Naik</item> <!-- 70 Al-Ma'arij -->
+        <item>Nabi Nuh</item> <!-- 71 Nuh -->
+        <item>Jin</item> <!-- 72 Al-Jinn -->
+        <item>Orang Berkelumun</item> <!-- 73 Al-Muzzammil -->
+        <item>Orang Berselimut</item> <!-- 74 Al-Muddassir -->
+        <item>Hari Kiamat</item> <!-- 75 Al-Qiyamah -->
+        <item>Manusia</item> <!-- 76 Al-Insan -->
+        <item>Malaikat yang Diutus</item> <!-- 77 Al-Mursalat -->
+        <item>Berita Besar</item> <!-- 78 An-Naba' -->
+        <item>Malaikat yang Mencabut</item> <!-- 79 An-Nazi'at -->
+        <item>Bermuka Masam</item> <!-- 80 'Abasa -->
+        <item>Menggulung</item> <!-- 81 At-Takwir -->
+        <item>Terbelah</item> <!-- 82 Al-Infitar -->
+        <item>Orang-Orang Curang</item> <!-- 83 Al-Mutaffifin -->
+        <item>Terbelah</item> <!-- 84 Al-Insyiqaq -->
+        <item>Gugusan Bintang</item> <!-- 85 Al-Buruj -->
+        <item>Yang Datang Malam</item> <!-- 86 At-Tariq -->
+        <item>Maha Tinggi</item> <!-- 87 Al-A'la -->
+        <item>Hari Pembalasan</item> <!-- 88 Al-Ghasyiyah -->
+        <item>Fajar</item> <!-- 89 Al-Fajr -->
+        <item>Negeri</item> <!-- 90 Al-Balad -->
+        <item>Matahari</item> <!-- 91 Asy-Syams -->
+        <item>Malam</item> <!-- 92 Al-Lail -->
+        <item>Waktu Duha</item> <!-- 93 Ad-Duha -->
+        <item>Kelapangan</item> <!-- 94 Asy-Syarh -->
+        <item>Buah Tin</item> <!-- 95 At-Tin -->
+        <item>Segumpal Darah</item> <!-- 96 Al-'Alaq -->
+        <item>Kemuliaan</item> <!-- 97 Al-Qadr -->
+        <item>Bukti Nyata</item> <!-- 98 Al-Bayyinah -->
+        <item>Guncangan</item> <!-- 99 Az-Zalzalah -->
+        <item>Kuda Perang</item> <!-- 100 Al-'Adiyat -->
+        <item>Hari Kiamat</item> <!-- 101 Al-Qari'ah -->
+        <item>Bermegah-megahan</item> <!-- 102 At-Takasur -->
+        <item>Masa</item> <!-- 103 Al-'Asr -->
+        <item>Pengumpat</item> <!-- 104 Al-Humazah -->
+        <item>Gajah</item> <!-- 105 Al-Fil -->
+        <item>Suku Quraisy</item> <!-- 106 Quraisy -->
+        <item>Bantuan</item> <!-- 107 Al-Ma'un -->
+        <item>Nikmat yang Banyak</item> <!-- 108 Al-Kausar -->
+        <item>Orang-Orang Kafir</item> <!-- 109 Al-Kafirun -->
+        <item>Pertolongan</item> <!-- 110 An-Nasr -->
+        <item>Gejolak Api</item> <!-- 111 Al-Lahab -->
+        <item>Kemurnian Keesaan</item> <!-- 112 Al-Ikhlas -->
+        <item>Waktu Subuh</item> <!-- 113 Al-Falaq -->
+        <item>Manusia</item> <!-- 114 An-Nas -->
+    </string-array>
 </resources>

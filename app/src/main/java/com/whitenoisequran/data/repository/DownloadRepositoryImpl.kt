@@ -19,35 +19,24 @@ import com.whitenoisequran.domain.model.DownloadState
 import com.whitenoisequran.domain.repository.DownloadRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import java.io.File
 import java.time.Duration
 import java.util.Locale
-import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class DownloadRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val surahDao: SurahDao,
-    private val okHttpClient: OkHttpClient
+    private val surahDao: SurahDao
 ) : DownloadRepository {
 
     private val workManager = WorkManager.getInstance(context)
-
-    // Audio files on the CDN don't change, so each size is asked for once per app run
-    private val fileSizes = ConcurrentHashMap<String, Long>()
 
     override fun getDownloadProgressFlow(reciterId: Int): Flow<BulkDownloadProgress> {
         val completedFlow = surahDao.getCompletedCountFlow(reciterId)
@@ -145,25 +134,11 @@ class DownloadRepositoryImpl @Inject constructor(
                 .sumOf { it.length() }
         }
 
-    override suspend fun getDownloadSizeBytes(reciterSlug: String, surahNumbers: List<Int>): Long? =
-        withContext(Dispatchers.IO) {
-            val permits = Semaphore(16) // HEAD requests are tiny and share one HTTP/2 connection
-            val sizes = surahNumbers.map { number ->
-                async {
-                    val url = QuranMetadataRegistry.audioUrl(reciterSlug, number)
-                    fileSizes[url] ?: permits.withPermit {
-                        runCatching {
-                            okHttpClient.newCall(Request.Builder().url(url).head().build())
-                                .execute().use {
-                                it.header("Content-Length")?.toLongOrNull()
-                                    ?.takeIf { _ -> it.isSuccessful }
-                            }
-                        }.getOrNull()?.also { size -> fileSizes[url] = size }
-                    }
-                }
-            }.awaitAll()
-            if (sizes.any { it == null }) null else sizes.sumOf { it ?: 0L }
-        }
+    // Known full size minus what's on disk (partly downloaded files count): instant, no network
+    override suspend fun getRemainingDownloadBytes(reciterSlug: String): Long? =
+        QuranMetadataRegistry.fullQuranBytes[reciterSlug]
+            ?.minus(getAudioSizeBytes(reciterSlug))
+            ?.takeIf { it > 0 }
 
     override suspend fun deleteSurahAudio(surahNumber: Int, reciterId: Int, reciterSlug: String) =
         withContext(Dispatchers.IO) {

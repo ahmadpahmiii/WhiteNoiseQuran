@@ -26,11 +26,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.whitenoisequran.R
 import com.whitenoisequran.ui.components.IslamicBackgroundPattern
 import com.whitenoisequran.ui.components.ReciterCard
 import com.whitenoisequran.ui.theme.AppTheme
@@ -76,12 +78,12 @@ fun OnboardingScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Nightlight,
-                        contentDescription = "Logo",
+                        contentDescription = null,
                         tint = GoldPrimary,
                         modifier = Modifier.size(24.dp)
                     )
                     Text(
-                        text = "White Noise Quran",
+                        text = stringResource(R.string.app_name),
                         style = AppTheme.typography.titleLarge,
                         color = GoldPrimary
                     )
@@ -91,14 +93,14 @@ fun OnboardingScreen(
 
                 // Arabic Title
                 Text(
-                    text = "اختر القارئ",
+                    text = stringResource(R.string.choose_reciter_arabic),
                     style = ArabicSubtitleStyle.copy(fontSize = 30.sp),
                     color = TextPrimary
                 )
 
                 // Subtitle
                 Text(
-                    text = "Choose Your Reciter",
+                    text = stringResource(R.string.choose_your_reciter),
                     style = AppTheme.typography.bodyMedium,
                     color = TextSecondary,
                     modifier = Modifier.padding(top = 4.dp)
@@ -164,7 +166,7 @@ fun OnboardingScreen(
                         )
                 ) {
                     Text(
-                        text = "Continue",
+                        text = stringResource(R.string.continue_btn),
                         style = AppTheme.typography.labelLarge.copy(fontSize = 16.sp),
                         fontWeight = FontWeight.Bold
                     )

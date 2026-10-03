@@ -15,6 +15,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import com.whitenoisequran.MainActivity
+import com.whitenoisequran.R
 import com.whitenoisequran.data.isOnline
 import com.whitenoisequran.data.local.dao.SurahDao
 import com.whitenoisequran.data.remote.QuranMetadataRegistry
@@ -166,7 +167,10 @@ class BulkDownloadWorker @AssistedInject constructor(
             wentOffline.get() -> Result.retry()
             failedCount.get() == 0 -> {
                 if (isBulk && completedCount.get() == 114) {
-                    notifyResult("Download complete", "All 114 surahs are available offline")
+                    notifyResult(
+                        appContext.getString(R.string.notif_download_complete_title),
+                        appContext.getString(R.string.notif_download_complete_text)
+                    )
                 }
                 Result.success()
             }
@@ -178,8 +182,12 @@ class BulkDownloadWorker @AssistedInject constructor(
             else -> {
                 val failed = failedCount.get()
                 if (isBulk) notifyResult(
-                    "$failed ${if (failed == 1) "surah" else "surahs"} couldn't be downloaded",
-                    "Tap to retry"
+                    appContext.resources.getQuantityString(
+                        R.plurals.notif_download_failed_title,
+                        failed,
+                        failed
+                    ),
+                    appContext.getString(R.string.notif_tap_to_retry)
                 )
                 Result.success()
             }
@@ -322,12 +330,22 @@ class BulkDownloadWorker @AssistedInject constructor(
         )
 
     private fun progressNotification(done: Int): Notification = notificationBuilder()
-        .setContentTitle("Downloading Quran audio")
-        .setContentText(if (isBulk) "$done of 114 surahs" else "Surah $singleSurah")
+        .setContentTitle(appContext.getString(R.string.notif_downloading_title))
+        .setContentText(
+            if (isBulk) {
+                appContext.getString(R.string.notif_downloading_bulk, done)
+            } else {
+                appContext.getString(R.string.notif_downloading_single, singleSurah)
+            }
+        )
         .setProgress(114, done, !isBulk)
         .setOngoing(true)
         .setOnlyAlertOnce(true)
-        .addAction(0, "Pause", WorkManager.getInstance(appContext).createCancelPendingIntent(id))
+        .addAction(
+            0,
+            appContext.getString(R.string.pause),
+            WorkManager.getInstance(appContext).createCancelPendingIntent(id)
+        )
         .build()
 
     private fun notifyResult(title: String, text: String) = notificationManager.notify(
@@ -344,7 +362,11 @@ class BulkDownloadWorker @AssistedInject constructor(
     /** Tapping any download notification opens the download screen. */
     private fun notificationBuilder(): NotificationCompat.Builder {
         notificationManager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ID, "Quran Downloads", NotificationManager.IMPORTANCE_LOW)
+            NotificationChannel(
+                CHANNEL_ID,
+                appContext.getString(R.string.channel_downloads),
+                NotificationManager.IMPORTANCE_LOW
+            )
         )
         val openDownloads = PendingIntent.getActivity(
             appContext,

@@ -26,9 +26,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.whitenoisequran.R
 import com.whitenoisequran.domain.model.Reciter
 import com.whitenoisequran.ui.theme.AppTheme
 import com.whitenoisequran.ui.theme.ArabicItemStyle
@@ -139,7 +141,7 @@ fun ReciterCard(
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
-                                text = "Popular",
+                                text = stringResource(R.string.popular),
                                 fontSize = 10.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = TealPrimary
@@ -157,9 +159,9 @@ fun ReciterCard(
                 if (downloadedCount != null) {
                     Text(
                         text = when (downloadedCount) {
-                            0 -> "Streams online"
-                            114 -> "Available offline"
-                            else -> "$downloadedCount / 114 downloaded"
+                            0 -> stringResource(R.string.streams_online)
+                            114 -> stringResource(R.string.available_offline)
+                            else -> stringResource(R.string.downloaded_of_114, downloadedCount)
                         },
                         style = AppTheme.typography.labelSmall,
                         color = when (downloadedCount) {
@@ -189,7 +191,7 @@ fun ReciterCard(
                 if (isSelected) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Selected",
+                        contentDescription = stringResource(R.string.cd_selected),
                         tint = BackgroundNavy,
                         modifier = Modifier.size(16.dp)
                     )

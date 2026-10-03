@@ -28,11 +28,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.whitenoisequran.R
 import com.whitenoisequran.ui.components.IslamicBackgroundPattern
 import com.whitenoisequran.ui.components.PlayerArtwork
 import com.whitenoisequran.ui.components.SurahDownloadGrid
@@ -84,32 +87,46 @@ fun DownloadScreen(
                         IconButton(onClick = onNavigateBack) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
+                                contentDescription = stringResource(R.string.back),
                                 tint = TextPrimary
                             )
                         }
 
                         Column(modifier = Modifier.padding(start = 8.dp)) {
                             Text(
-                                text = "Downloading ${uiState.reciter?.name ?: "Reciter"}",
+                                text = stringResource(
+                                    R.string.downloading_reciter,
+                                    uiState.reciter?.name
+                                        ?: stringResource(R.string.reciter_fallback)
+                                ),
                                 style = AppTheme.typography.titleMedium,
                                 color = TextPrimary
                             )
                             Text(
                                 // Reachable any time from the Surah Index, so say where things stand
                                 text = when {
-                                    uiState.progress.completedCount >= uiState.progress.totalSurahs -> "All surahs available offline"
-                                    uiState.progress.isWaitingForNetwork -> "Waiting for connection…"
-                                    uiState.progress.isRunning -> "Preparing offline mode…"
-                                    uiState.progress.failedCount > 0 -> "${uiState.progress.failedCount} failed · resume to retry"
+                                    uiState.progress.completedCount >= uiState.progress.totalSurahs ->
+                                        stringResource(R.string.all_surahs_offline)
+
+                                    uiState.progress.isWaitingForNetwork -> stringResource(R.string.waiting_for_connection)
+                                    uiState.progress.isRunning -> stringResource(R.string.preparing_offline)
+                                    uiState.progress.failedCount > 0 ->
+                                        stringResource(
+                                            R.string.failed_resume_to_retry,
+                                            uiState.progress.failedCount
+                                        )
                                     // Run finished but some were cancelled one by one
                                     uiState.progress.isFinished -> {
                                         val left =
                                             uiState.progress.totalSurahs - uiState.progress.completedCount
-                                        "$left ${if (left == 1) "surah" else "surahs"} not downloaded · resume to get them"
+                                        pluralStringResource(
+                                            R.plurals.not_downloaded_resume,
+                                            left,
+                                            left
+                                        )
                                     }
 
-                                    else -> "Paused"
+                                    else -> stringResource(R.string.paused)
                                 },
                                 style = AppTheme.typography.bodySmall,
                                 color = TextSecondary
@@ -139,7 +156,10 @@ fun DownloadScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "${uiState.progress.completedCount} / 114 Surahs",
+                            text = stringResource(
+                                R.string.surahs_progress,
+                                uiState.progress.completedCount
+                            ),
                             style = AppTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color = GoldPrimary
@@ -149,10 +169,14 @@ fun DownloadScreen(
                             val eta = uiState.etaMinutes
                             Text(
                                 text = when {
-                                    eta == null -> "Estimating time…"
-                                    eta <= 1 -> "Less than a minute left"
-                                    eta < 60 -> "~$eta min left"
-                                    else -> "~${eta / 60} h ${eta % 60} min left"
+                                    eta == null -> stringResource(R.string.eta_estimating)
+                                    eta <= 1 -> stringResource(R.string.eta_under_minute)
+                                    eta < 60 -> stringResource(R.string.eta_minutes, eta)
+                                    else -> stringResource(
+                                        R.string.eta_hours_minutes,
+                                        eta / 60,
+                                        eta % 60
+                                    )
                                 },
                                 style = AppTheme.typography.bodySmall,
                                 color = TealLight
@@ -182,7 +206,9 @@ fun DownloadScreen(
                             }
                         ) {
                             Text(
-                                text = if (uiState.progress.isRunning) "Pause download" else "Resume download",
+                                text = stringResource(
+                                    if (uiState.progress.isRunning) R.string.pause_download else R.string.resume_download
+                                ),
                                 style = AppTheme.typography.labelLarge,
                                 color = TealLight
                             )
@@ -218,7 +244,9 @@ fun DownloadScreen(
                             .height(52.dp)
                     ) {
                         Text(
-                            text = if (uiState.progress.isFinished) "Start Listening" else "Play Available Surahs",
+                            text = stringResource(
+                                if (uiState.progress.isFinished) R.string.start_listening else R.string.play_available
+                            ),
                             style = AppTheme.typography.labelLarge.copy(fontSize = 15.sp),
                             fontWeight = FontWeight.SemiBold
                         )
@@ -227,7 +255,7 @@ fun DownloadScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "This only happens once per reciter",
+                        text = stringResource(R.string.download_once_hint),
                         style = AppTheme.typography.bodySmall,
                         color = TextMuted,
                         modifier = Modifier.padding(bottom = 24.dp)

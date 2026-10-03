@@ -5,8 +5,8 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -26,8 +26,7 @@ class AppPreferences @Inject constructor(
         val SELECTED_RECITER_ID = intPreferencesKey("selected_reciter_id")
         val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         val LAST_PLAYED_SURAH = intPreferencesKey("last_played_surah")
-        val SLEEP_TIMER_MINUTES = intPreferencesKey("sleep_timer_minutes")
-        val SHUFFLE_ENABLED = booleanPreferencesKey("shuffle_enabled")
+        val QURAN_VOLUME = floatPreferencesKey("quran_volume")
     }
 
     val selectedReciterIdFlow: Flow<Int> = dataStore.data.map { preferences ->
@@ -42,8 +41,8 @@ class AppPreferences @Inject constructor(
         preferences[LAST_PLAYED_SURAH] ?: 1 // Default to Surah Al-Fatihah
     }
 
-    val shuffleEnabledFlow: Flow<Boolean> = dataStore.data.map { preferences ->
-        preferences[SHUFFLE_ENABLED] ?: false
+    val quranVolumeFlow: Flow<Float> = dataStore.data.map { preferences ->
+        preferences[QURAN_VOLUME] ?: 1.0f
     }
 
     suspend fun setSelectedReciterId(reciterId: Int) {
@@ -64,9 +63,9 @@ class AppPreferences @Inject constructor(
         }
     }
 
-    suspend fun setShuffleEnabled(enabled: Boolean) {
+    suspend fun setQuranVolume(volume: Float) {
         dataStore.edit { preferences ->
-            preferences[SHUFFLE_ENABLED] = enabled
+            preferences[QURAN_VOLUME] = volume
         }
     }
 }

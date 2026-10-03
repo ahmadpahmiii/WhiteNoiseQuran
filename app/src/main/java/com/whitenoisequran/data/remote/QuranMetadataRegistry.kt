@@ -1,5 +1,7 @@
 package com.whitenoisequran.data.remote
 
+import java.util.Locale
+
 data class SurahStaticInfo(
     val number: Int,
     val nameArabic: String,
@@ -10,6 +12,14 @@ data class SurahStaticInfo(
 )
 
 object QuranMetadataRegistry {
+    fun audioUrl(reciterSlug: String, surahNumber: Int): String =
+        String.format(
+            Locale.US,
+            "https://cdn.equran.id/audio-full/%s/%03d.mp3",
+            reciterSlug,
+            surahNumber
+        )
+
     val allSurahs: List<SurahStaticInfo> = listOf(
         SurahStaticInfo(1, "الفاتحة", "Al-Fatihah", 7, "Mekkah", "Pembukaan"),
         SurahStaticInfo(2, "البقرة", "Al-Baqarah", 286, "Madinah", "Sapi Betina"),

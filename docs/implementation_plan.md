@@ -175,7 +175,7 @@ nomor | nama | namaLatin | jumlahAyat | tempatTurun | arti
 │  0:00 ──●──────────────────── 4:31   │  ← Seek bar
 │                                        │
 │        ⏮    ⏸    ⏭                  │  ← Controls (large)
-│   🔀                          ⏱ 45m  │  ← Shuffle + Timer
+│                               ⏱ 45m  │  ← Sleep timer
 │                                        │
 ├────────────────────────────────────────┤
 │  🎵 AMBIENT MIX                        │
@@ -287,7 +287,7 @@ app/src/main/java/com/whitenoisequran/
 │   ├── components/
 │   │   ├── PlayerArtwork.kt        # Animated canvas area
 │   │   ├── SeekBar.kt              # Custom gradient seek bar
-│   │   ├── PlayerControls.kt       # Prev/Play/Next + shuffle/timer
+│   │   ├── PlayerControls.kt       # Prev/Play/Next + sleep timer
 │   │   ├── AmbientSoundCard.kt     # Card with vertical slider
 │   │   ├── AmbientMixSection.kt    # 2-column grid of sound cards
 │   │   ├── SurahListSheet.kt       # Modal bottom sheet

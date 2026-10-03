@@ -2,6 +2,7 @@ package com.whitenoisequran.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.MapColumn
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.whitenoisequran.data.local.entity.AmbientSoundEntity
@@ -15,17 +16,14 @@ interface SurahDao {
     @Query("SELECT * FROM surahs WHERE reciterId = :reciterId ORDER BY number ASC")
     fun getSurahsByReciter(reciterId: Int): Flow<List<SurahEntity>>
 
-    @Query("SELECT * FROM surahs WHERE number = :number AND reciterId = :reciterId LIMIT 1")
-    suspend fun getSurah(number: Int, reciterId: Int): SurahEntity?
-
     @Query("SELECT COUNT(*) FROM surahs WHERE reciterId = :reciterId AND downloadState = 'DONE'")
     fun getCompletedCountFlow(reciterId: Int): Flow<Int>
 
     @Query("SELECT COUNT(*) FROM surahs WHERE reciterId = :reciterId AND downloadState = 'FAILED'")
     fun getFailedCountFlow(reciterId: Int): Flow<Int>
 
-    @Query("SELECT COUNT(*) FROM surahs WHERE reciterId = :reciterId AND downloadState = 'DONE'")
-    suspend fun getCompletedCount(reciterId: Int): Int
+    @Query("SELECT reciterId, COUNT(*) AS count FROM surahs WHERE downloadState = 'DONE' GROUP BY reciterId")
+    fun getCompletedCountsFlow(): Flow<Map<@MapColumn("reciterId") Int, @MapColumn("count") Int>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSurahs(surahs: List<SurahEntity>)
@@ -35,6 +33,12 @@ interface SurahDao {
 
     @Query("UPDATE surahs SET downloadState = 'NONE', localFilePath = NULL WHERE reciterId = :reciterId")
     suspend fun resetAllDownloadStates(reciterId: Int)
+
+    @Query("UPDATE surahs SET downloadState = 'NONE' WHERE reciterId = :reciterId AND downloadState = 'DOWNLOADING'")
+    suspend fun resetInProgressDownloads(reciterId: Int)
+
+    @Query("UPDATE surahs SET downloadState = 'NONE' WHERE number = :number AND reciterId = :reciterId AND downloadState = 'DOWNLOADING'")
+    suspend fun resetInProgressDownload(number: Int, reciterId: Int)
 
     @Query("SELECT COUNT(*) FROM surahs WHERE reciterId = :reciterId")
     suspend fun getSurahCount(reciterId: Int): Int

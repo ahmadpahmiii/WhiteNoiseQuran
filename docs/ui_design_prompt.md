@@ -146,7 +146,7 @@ Seekbar:
 Player controls:
 - Large gold Play/Pause button (center) with soft gold glow shadow
 - Previous (left) and Next (right) icons in white
-- Bottom row: Shuffle (far left) + Sleep timer pill "45m" (far right)
+- Bottom row: Sleep timer pill "45m" (far right)
 
 ━━━━━━━━━━━━━━━━━━━━━━
 SECTION 2 — AMBIENT SOUND MIXER (scrollable below)

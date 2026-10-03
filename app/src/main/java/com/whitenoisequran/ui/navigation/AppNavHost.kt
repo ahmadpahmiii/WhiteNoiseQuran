@@ -42,8 +42,11 @@ fun AppNavHost(
                     navController.popBackStack()
                 },
                 onNavigateToMain = {
-                    navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    // Back to the player when it's underneath (keeps its state); after onboarding, replace the flow with it
+                    if (!navController.popBackStack(Screen.Main.route, inclusive = false)) {
+                        navController.navigate(Screen.Main.route) {
+                            popUpTo(navController.graph.id) { inclusive = true }
+                        }
                     }
                 }
             )
@@ -51,8 +54,8 @@ fun AppNavHost(
 
         composable(Screen.Main.route) {
             MainScreen(
-                onNavigateToOnboarding = {
-                    navController.navigate(Screen.Onboarding.route)
+                onNavigateToDownload = { reciterId ->
+                    navController.navigate(Screen.Download.createRoute(reciterId))
                 }
             )
         }

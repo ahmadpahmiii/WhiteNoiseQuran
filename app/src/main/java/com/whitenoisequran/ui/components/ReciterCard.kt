@@ -37,17 +37,20 @@ import com.whitenoisequran.ui.theme.CardDark
 import com.whitenoisequran.ui.theme.GoldGlow
 import com.whitenoisequran.ui.theme.GoldLight
 import com.whitenoisequran.ui.theme.GoldPrimary
+import com.whitenoisequran.ui.theme.SuccessGreen
+import com.whitenoisequran.ui.theme.TealLight
 import com.whitenoisequran.ui.theme.TealPrimary
 import com.whitenoisequran.ui.theme.TextMuted
 import com.whitenoisequran.ui.theme.TextPrimary
-import com.whitenoisequran.ui.theme.TextSecondary
 
 @Composable
 fun ReciterCard(
     reciter: Reciter,
     isSelected: Boolean,
     onSelect: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    /** Shows offline availability when set (the reciter picker); null hides it (onboarding). */
+    downloadedCount: Int? = null
 ) {
     val borderColor by animateColorAsState(
         targetValue = if (isSelected) GoldPrimary else Color.White.copy(alpha = 0.06f),
@@ -88,7 +91,11 @@ fun ReciterCard(
                 modifier = Modifier
                     .size(48.dp)
                     .clip(CircleShape)
-                    .background(if (isSelected) GoldPrimary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.05f))
+                    .background(
+                        if (isSelected) GoldPrimary.copy(alpha = 0.2f) else Color.White.copy(
+                            alpha = 0.05f
+                        )
+                    )
                     .border(
                         width = 1.dp,
                         color = if (isSelected) GoldPrimary else Color.White.copy(alpha = 0.1f),
@@ -124,7 +131,11 @@ fun ReciterCard(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(6.dp))
                                 .background(TealPrimary.copy(alpha = 0.2f))
-                                .border(1.dp, TealPrimary.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
+                                .border(
+                                    1.dp,
+                                    TealPrimary.copy(alpha = 0.5f),
+                                    RoundedCornerShape(6.dp)
+                                )
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         ) {
                             Text(
@@ -142,6 +153,22 @@ fun ReciterCard(
                     style = AppTheme.typography.bodySmall,
                     color = if (isSelected) GoldLight else TextMuted
                 )
+
+                if (downloadedCount != null) {
+                    Text(
+                        text = when (downloadedCount) {
+                            0 -> "Streams online"
+                            114 -> "Available offline"
+                            else -> "$downloadedCount / 114 downloaded"
+                        },
+                        style = AppTheme.typography.labelSmall,
+                        color = when (downloadedCount) {
+                            0 -> TextMuted
+                            114 -> SuccessGreen
+                            else -> TealLight
+                        }
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))

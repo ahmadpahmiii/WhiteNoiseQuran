@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
@@ -43,6 +44,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,6 +63,7 @@ import kotlin.math.roundToInt
 @Composable
 fun PlayerControls(
     isPlaying: Boolean,
+    isBuffering: Boolean,
     quranVolume: Float,
     sleepTimerText: String?,
     onPlayPause: () -> Unit,
@@ -193,12 +197,23 @@ fun PlayerControls(
                     .clickable { onPlayPause() },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                    contentDescription = if (isPlaying) "Pause" else "Play",
-                    tint = BackgroundNavy,
-                    modifier = Modifier.size(36.dp)
-                )
+                if (isBuffering) {
+                    // Loading the audio; tapping still pauses
+                    CircularProgressIndicator(
+                        color = BackgroundNavy,
+                        strokeWidth = 3.dp,
+                        modifier = Modifier
+                            .size(30.dp)
+                            .semantics { contentDescription = "Loading, tap to pause" }
+                    )
+                } else {
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                        contentDescription = if (isPlaying) "Pause" else "Play",
+                        tint = BackgroundNavy,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
             }
 
             // Next Track

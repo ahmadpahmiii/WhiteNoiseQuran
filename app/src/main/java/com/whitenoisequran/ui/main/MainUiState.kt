@@ -11,6 +11,7 @@ data class MainUiState(
     val surahs: List<Surah> = emptyList(),
     val ambientSounds: List<AmbientSound> = emptyList(),
     val isPlaying: Boolean = false,
+    val isBuffering: Boolean = false,
     val quranVolume: Float = 1.0f,
     val playbackPositionMs: Long = 0L,
     val playbackDurationMs: Long = 1L,
@@ -20,5 +21,19 @@ data class MainUiState(
     val isSleepTimerSheetOpen: Boolean = false,
     val isReciterSheetOpen: Boolean = false,
     val isLoadingSurahs: Boolean = false,
-    val downloadProgress: BulkDownloadProgress = BulkDownloadProgress()
+    val downloadProgress: BulkDownloadProgress = BulkDownloadProgress(),
+    val reciters: List<Reciter> = emptyList(),
+    /** Downloaded surah count per reciter id. */
+    val reciterDownloadCounts: Map<Int, Int> = emptyMap(),
+    /** Set while "Free Space" waits for confirmation: the bytes it would free. */
+    val deleteAllConfirmBytes: Long? = null,
+    /** Set while "Download All" waits for confirmation. */
+    val downloadConfirm: DownloadConfirm? = null
+)
+
+data class DownloadConfirm(
+    val surahCount: Int,
+    /** Null while measuring, or when the size couldn't be checked. */
+    val bytes: Long? = null,
+    val isMeasuring: Boolean = true
 )

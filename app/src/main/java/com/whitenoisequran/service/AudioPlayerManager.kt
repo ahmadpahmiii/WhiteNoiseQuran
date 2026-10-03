@@ -7,7 +7,10 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.whitenoisequran.data.isOnline
 import com.whitenoisequran.data.preferences.AppPreferences
+import com.whitenoisequran.data.remote.QuranMetadataRegistry
+import com.whitenoisequran.domain.model.DownloadState
 import com.whitenoisequran.domain.model.Reciter
 import com.whitenoisequran.domain.model.Surah
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -16,9 +19,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.io.File
@@ -42,6 +49,11 @@ class AudioPlayerManager @Inject constructor(
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
+    private val _isBuffering = MutableStateFlow(false)
+
+    /** Wants to play but is still loading audio (streaming, or a slow connection). */
+    val isBuffering: StateFlow<Boolean> = _isBuffering.asStateFlow()
+
     private val _currentSurah = MutableStateFlow<Surah?>(null)
     val currentSurah: StateFlow<Surah?> = _currentSurah.asStateFlow()
 
@@ -57,12 +69,18 @@ class AudioPlayerManager @Inject constructor(
     private val _quranVolume = MutableStateFlow(1.0f)
     val quranVolume: StateFlow<Float> = _quranVolume.asStateFlow()
 
+    private val _playbackErrors = MutableSharedFlow<Surah>(extraBufferCapacity = 1)
+
+    /** Surahs that failed to play, e.g. not downloaded while offline. */
+    val playbackErrors: SharedFlow<Surah> = _playbackErrors.asSharedFlow()
+
     private var globalSleepFadeMultiplier: Float = 1.0f
     private var playlist: List<Surah> = emptyList()
 
     init {
         setupPlayerListeners()
         setupSleepTimerCallbacks()
+        restoreQuranVolume()
     }
 
     private fun setupPlayerListeners() {
@@ -89,38 +107,82 @@ class AudioPlayerManager @Inject constructor(
                 }
             }
 
+            override fun onEvents(player: Player, events: Player.Events) {
+                _isBuffering.value =
+                    player.playbackState == Player.STATE_BUFFERING && player.playWhenReady
+            }
+
             override fun onPlayerError(error: PlaybackException) {
                 error.printStackTrace()
                 _isPlaying.value = false
+                _currentSurah.value?.let { _playbackErrors.tryEmit(it) }
             }
         })
     }
 
     private fun setupSleepTimerCallbacks() {
+        // Timer callbacks fire off the main thread; ExoPlayer must only be touched on main.
         sleepTimerController.setCallbacks(
             onFinish = {
-                pause()
-                ambientSoundMixer.stopAll()
+                scope.launch {
+                    pause()
+                    ambientSoundMixer.stopAll()
+                    applySleepFade(1.0f) // restore volume so the next playback isn't silent
+                }
             },
-            onFade = { multiplier ->
-                globalSleepFadeMultiplier = multiplier
-                exoPlayer.volume = (_quranVolume.value * multiplier).coerceIn(0f, 1f)
-                ambientSoundMixer.fadeVolumeMultiplier(multiplier)
-            }
+            onFade = { multiplier -> scope.launch { applySleepFade(multiplier) } }
         )
+    }
+
+    private fun applySleepFade(multiplier: Float) {
+        globalSleepFadeMultiplier = multiplier
+        exoPlayer.volume = (_quranVolume.value * multiplier).coerceIn(0f, 1f)
+        ambientSoundMixer.fadeVolumeMultiplier(multiplier)
+    }
+
+    private fun restoreQuranVolume() {
+        scope.launch {
+            val saved = appPreferences.quranVolumeFlow.first()
+            _quranVolume.value = saved
+            exoPlayer.volume = (saved * globalSleepFadeMultiplier).coerceIn(0f, 1f)
+        }
     }
 
     fun setQuranVolume(volume: Float) {
         val clamped = volume.coerceIn(0f, 1f)
         _quranVolume.value = clamped
         exoPlayer.volume = (clamped * globalSleepFadeMultiplier).coerceIn(0f, 1f)
+        scope.launch { appPreferences.setQuranVolume(clamped) }
     }
 
     fun updatePlaylist(surahs: List<Surah>, reciter: Reciter) {
+        val reciterChanged = _currentReciter.value.let { it != null && it.id != reciter.id }
         this.playlist = surahs
         this._currentReciter.value = reciter
-        if (_currentSurah.value == null && surahs.isNotEmpty()) {
-            _currentSurah.value = surahs.first()
+        val current = _currentSurah.value
+        if (current == null) {
+            if (surahs.isNotEmpty()) {
+                scope.launch {
+                    val lastPlayed = appPreferences.lastPlayedSurahFlow.first()
+                    if (_currentSurah.value == null) {
+                        _currentSurah.value =
+                            surahs.find { it.number == lastPlayed } ?: surahs.first()
+                    }
+                }
+            }
+            return
+        }
+        // Same surah from the new list: fresh download state, and the new reciter's file after a switch
+        val fresh = surahs.find { it.number == current.number } ?: return
+        _currentSurah.value = fresh
+        if (reciterChanged && exoPlayer.mediaItemCount > 0) {
+            if (exoPlayer.isPlaying) {
+                playSurah(fresh) // hear the chosen reciter right away
+            } else {
+                exoPlayer.clearMediaItems() // play loads the new reciter's audio
+                _currentPositionMs.value = 0L
+                _durationMs.value = 1L
+            }
         }
     }
 
@@ -158,8 +220,10 @@ class AudioPlayerManager @Inject constructor(
         if (exoPlayer.isPlaying) {
             pause()
         } else {
-            if (_currentSurah.value == null && playlist.isNotEmpty()) {
-                playSurah(playlist.first())
+            val surah = _currentSurah.value ?: playlist.firstOrNull() ?: return
+            if (exoPlayer.mediaItemCount == 0 || exoPlayer.playbackState == Player.STATE_IDLE) {
+                // Nothing loaded yet (e.g. restored surah after app restart), or the last load failed: load again
+                playSurah(surah)
             } else {
                 exoPlayer.play()
                 _isPlaying.value = true
@@ -173,18 +237,24 @@ class AudioPlayerManager @Inject constructor(
         _isPlaying.value = false
     }
 
-    fun playNext() {
-        if (playlist.isEmpty()) return
-        val currentIndex = playlist.indexOfFirst { it.number == _currentSurah.value?.number }
-        val nextIndex = (currentIndex + 1) % playlist.size
-        playSurah(playlist[nextIndex])
-    }
+    fun playNext() = playAdjacent(1)
 
-    fun playPrevious() {
+    fun playPrevious() = playAdjacent(-1)
+
+    private fun playAdjacent(step: Int) {
         if (playlist.isEmpty()) return
         val currentIndex = playlist.indexOfFirst { it.number == _currentSurah.value?.number }
-        val prevIndex = if (currentIndex <= 0) playlist.size - 1 else currentIndex - 1
-        playSurah(playlist[prevIndex])
+        val candidates = (1..playlist.size).map {
+            playlist[Math.floorMod(
+                currentIndex + step * it,
+                playlist.size
+            )]
+        }
+        // Offline only downloaded surahs can play (e.g. auto-advance at night): skip the others.
+        // None downloaded: play the next anyway so its error tells the user why.
+        val next = candidates.firstOrNull { it.downloadState == DownloadState.DONE }
+            .takeUnless { context.isOnline() } ?: candidates.first()
+        playSurah(next)
     }
 
     fun seekTo(positionMs: Long) {
@@ -217,7 +287,7 @@ class AudioPlayerManager @Inject constructor(
         }
 
         // Priority 3: Fallback to CDN stream URL
-        return "https://cdn.equran.id/audio-full/$reciterSlug/${String.format("%03d", surah.number)}.mp3"
+        return QuranMetadataRegistry.audioUrl(reciterSlug, surah.number)
     }
 
     private fun startProgressTracker() {

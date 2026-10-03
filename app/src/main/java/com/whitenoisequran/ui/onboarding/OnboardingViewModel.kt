@@ -9,7 +9,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -31,9 +30,13 @@ class OnboardingViewModel @Inject constructor(
 
     val uiState: StateFlow<OnboardingUiState> = combine(
         quranRepository.getRecitersFlow(),
-        _selectedReciter
-    ) { reciters, selected ->
-        val effectiveSelected = selected ?: reciters.firstOrNull { it.isPopular } ?: reciters.firstOrNull()
+        _selectedReciter,
+        appPreferences.selectedReciterIdFlow
+    ) { reciters, selected, savedId ->
+        val effectiveSelected = selected
+            ?: reciters.find { it.id == savedId }
+            ?: reciters.firstOrNull { it.isPopular }
+            ?: reciters.firstOrNull()
         OnboardingUiState(
             reciters = reciters.ifEmpty { Reciter.DefaultReciters },
             selectedReciter = effectiveSelected,

@@ -20,13 +20,17 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DeleteOutline
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
@@ -73,24 +77,25 @@ fun SurahListSheet(
     onSelectSurah: (Surah) -> Unit,
     onDownloadSingleSurah: (Surah) -> Unit = {},
     onDeleteSurahAudio: (Surah) -> Unit = {},
-    onDownloadAll: () -> Unit = {},
+    onCancelDownload: (Surah) -> Unit = {},
+    onOpenDownloads: () -> Unit = {},
     onDeleteAllAudio: () -> Unit = {},
     onDismiss: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     var searchQuery by remember { mutableStateOf("") }
+    var downloadedOnly by remember { mutableStateOf(false) }
 
-    val filteredSurahs = remember(surahs, searchQuery) {
-        if (searchQuery.isBlank()) {
-            surahs
-        } else {
-            val query = searchQuery.trim().lowercase()
-            surahs.filter {
-                it.number.toString() == query ||
+    val filteredSurahs = remember(surahs, searchQuery, downloadedOnly) {
+        val query = searchQuery.trim().lowercase()
+        surahs.filter {
+            (!downloadedOnly || it.downloadState == DownloadState.DONE) && (
+                    query.isEmpty() ||
+                            it.number.toString().startsWith(query) || // "4" finds 4 and 40–49
                 it.nameLatin.lowercase().contains(query) ||
                 it.nameArabic.contains(query) ||
                 it.translationId.lowercase().contains(query)
-            }
+                    )
         }
     }
 
@@ -158,30 +163,45 @@ fun SurahListSheet(
                     .clip(RoundedCornerShape(14.dp))
                     .background(CardDark)
                     .padding(horizontal = 12.dp, vertical = 8.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Download All Button
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(10.dp))
-                        .clickable { onDownloadAll() }
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Download,
-                        contentDescription = "Download All",
-                        tint = if (downloadProgress.isRunning) TealLight else GoldPrimary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = if (downloadProgress.isRunning) "Downloading (${downloadProgress.completedCount}/114)" else "Download All",
-                        style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
-                        color = if (downloadProgress.isRunning) TealLight else GoldPrimary
-                    )
+                // Opens the download screen, which starts or resumes the bulk download and can pause it
+                if (downloadedCount < 114) {
+                    val tint = if (downloadProgress.isRunning) TealLight else GoldPrimary
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { onOpenDownloads() }
+                            .padding(horizontal = 10.dp, vertical = 6.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Download,
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = when {
+                                downloadProgress.isWaitingForNetwork -> "Waiting for connection ($downloadedCount/114)"
+                                downloadProgress.isRunning -> "Downloading ($downloadedCount/114)"
+                                downloadedCount > 0 -> "Download remaining (${114 - downloadedCount})"
+                                else -> "Download All"
+                            },
+                            style = AppTheme.typography.labelSmall.copy(fontWeight = FontWeight.SemiBold),
+                            color = tint
+                        )
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = null,
+                            tint = tint,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
+
+                Spacer(modifier = Modifier.weight(1f))
 
                 // Delete All (Free Storage) Button
                 if (downloadedCount > 0) {
@@ -268,19 +288,64 @@ fun SurahListSheet(
                     }
                 }
             } else {
-                // Surah Count
-                Text(
-                    text = "${filteredSurahs.size} Surahs",
-                    style = AppTheme.typography.labelMedium,
-                    color = TextMuted,
-                    modifier = Modifier.padding(bottom = 6.dp)
-                )
+                // Surah count + All / Downloaded filter (offline, only downloaded surahs play)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (filteredSurahs.size == 1) "1 Surah" else "${filteredSurahs.size} Surahs",
+                        style = AppTheme.typography.labelMedium,
+                        color = TextMuted,
+                        modifier = Modifier.weight(1f)
+                    )
+                    listOf(
+                        false to "All",
+                        true to "Downloaded"
+                    ).forEach { (onlyDownloaded, label) ->
+                        val selected = downloadedOnly == onlyDownloaded
+                        FilterChip(
+                            selected = selected,
+                            onClick = { downloadedOnly = onlyDownloaded },
+                            label = { Text(text = label, style = AppTheme.typography.labelSmall) },
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = Color.Transparent,
+                                labelColor = TextSecondary,
+                                selectedContainerColor = GoldPrimary.copy(alpha = 0.15f),
+                                selectedLabelColor = GoldPrimary
+                            ),
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = selected,
+                                borderColor = Color.White.copy(alpha = 0.08f),
+                                selectedBorderColor = GoldPrimary.copy(alpha = 0.5f)
+                            ),
+                            modifier = Modifier.padding(start = 6.dp)
+                        )
+                    }
+                }
 
                 // Surah List
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
+                    if (filteredSurahs.isEmpty()) {
+                        item {
+                            Text(
+                                text = if (searchQuery.isBlank()) {
+                                    "Nothing downloaded yet. Downloaded surahs play without internet."
+                                } else {
+                                    "No surah matches \"${searchQuery.trim()}\""
+                                },
+                                style = AppTheme.typography.bodyMedium,
+                                color = TextMuted,
+                                modifier = Modifier.padding(vertical = 24.dp)
+                            )
+                        }
+                    }
                     items(
                         items = filteredSurahs,
                         key = { it.number }
@@ -290,11 +355,13 @@ fun SurahListSheet(
                         SurahListItem(
                             surah = surah,
                             isPlaying = isPlaying,
+                            downloadPercent = downloadProgress.surahPercent[surah.number],
                             onClick = {
                                 onSelectSurah(surah)
                                 onDismiss()
                             },
                             onDownload = { onDownloadSingleSurah(surah) },
+                            onCancelDownload = { onCancelDownload(surah) },
                             onDelete = { onDeleteSurahAudio(surah) }
                         )
                     }
@@ -308,8 +375,10 @@ fun SurahListSheet(
 private fun SurahListItem(
     surah: Surah,
     isPlaying: Boolean,
+    downloadPercent: Int?,
     onClick: () -> Unit,
     onDownload: () -> Unit,
+    onCancelDownload: () -> Unit,
     onDelete: () -> Unit
 ) {
     Box(
@@ -423,16 +492,62 @@ private fun SurahListItem(
                 }
 
                 DownloadState.DOWNLOADING -> {
-                    CircularProgressIndicator(
-                        color = TealLight,
-                        strokeWidth = 2.dp,
-                        modifier = Modifier
-                            .padding(8.dp)
-                            .size(18.dp)
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (downloadPercent != null) {
+                            Text(
+                                text = "$downloadPercent%",
+                                style = AppTheme.typography.labelSmall,
+                                color = TealLight
+                            )
+                        }
+                        // Ring with a stop mark, like a store download: tap to cancel this surah
+                        IconButton(
+                            onClick = onCancelDownload,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                // No percent yet = queued or waiting for network: spin instead
+                                if (downloadPercent != null) {
+                                    CircularProgressIndicator(
+                                        progress = { downloadPercent / 100f },
+                                        color = TealLight,
+                                        trackColor = TealLight.copy(alpha = 0.2f),
+                                        strokeWidth = 2.dp,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                } else {
+                                    CircularProgressIndicator(
+                                        color = TealLight,
+                                        strokeWidth = 2.dp,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Cancel download",
+                                    tint = TealLight,
+                                    modifier = Modifier.size(12.dp)
+                                )
+                            }
+                        }
+                    }
                 }
 
-                else -> {
+                DownloadState.FAILED -> {
+                    IconButton(
+                        onClick = onDownload,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Download failed, retry",
+                            tint = ErrorRed,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+
+                DownloadState.NONE -> {
                     IconButton(
                         onClick = onDownload,
                         modifier = Modifier.size(36.dp)

@@ -29,10 +29,6 @@ class QuranRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSurahByNumber(number: Int, reciterId: Int): Surah? {
-        return surahDao.getSurah(number, reciterId)?.toDomain()
-    }
-
     override fun getRecitersFlow(): Flow<List<Reciter>> {
         return reciterDao.getAllReciters().map { entities ->
             if (entities.isEmpty()) {
@@ -50,8 +46,8 @@ class QuranRepositoryImpl @Inject constructor(
     }
 
     override suspend fun setSelectedReciter(reciter: Reciter) {
+        seedSurahsForReciter(reciter.id) // first: screens reload on the id change and need its surahs
         appPreferences.setSelectedReciterId(reciter.id)
-        seedSurahsForReciter(reciter.id)
     }
 
     override suspend fun seedInitialData() {

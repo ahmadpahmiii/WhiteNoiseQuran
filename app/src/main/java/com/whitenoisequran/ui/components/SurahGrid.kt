@@ -1,6 +1,5 @@
 package com.whitenoisequran.ui.components
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -9,16 +8,18 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -35,15 +36,15 @@ import com.whitenoisequran.domain.model.DownloadState
 import com.whitenoisequran.domain.model.Surah
 import com.whitenoisequran.ui.theme.CardDark
 import com.whitenoisequran.ui.theme.ErrorRed
-import com.whitenoisequran.ui.theme.GoldDark
 import com.whitenoisequran.ui.theme.GoldPrimary
 import com.whitenoisequran.ui.theme.TealPrimary
 import com.whitenoisequran.ui.theme.TextMuted
-import com.whitenoisequran.ui.theme.TextPrimary
 
 @Composable
 fun SurahDownloadGrid(
     surahs: List<Surah>,
+    surahPercent: Map<Int, Int>,
+    onRetry: (Surah) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "download_pulse")
@@ -75,7 +76,9 @@ fun SurahDownloadGrid(
                 rowSurahs.forEach { surah ->
                     SurahGridTile(
                         surah = surah,
+                        percent = surahPercent[surah.number],
                         pulseAlpha = pulseAlpha,
+                        onRetry = { onRetry(surah) },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -94,7 +97,9 @@ fun SurahDownloadGrid(
 @Composable
 private fun SurahGridTile(
     surah: Surah,
+    percent: Int?,
     pulseAlpha: Float,
+    onRetry: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val state = surah.downloadState
@@ -118,9 +123,25 @@ private fun SurahGridTile(
             .aspectRatio(1f)
             .clip(RoundedCornerShape(8.dp))
             .background(bgColor)
-            .border(1.dp, borderColor, RoundedCornerShape(8.dp)),
+            .border(1.dp, borderColor, RoundedCornerShape(8.dp))
+            .clickable(
+                enabled = state == DownloadState.FAILED,
+                onClickLabel = "Retry download",
+                onClick = onRetry
+            ),
         contentAlignment = Alignment.Center
     ) {
+        // Tile fills from the bottom as the file downloads
+        if (state == DownloadState.DOWNLOADING && percent != null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .fillMaxHeight(percent / 100f)
+                    .background(TealPrimary.copy(alpha = 0.3f))
+            )
+        }
+
         when (state) {
             DownloadState.DONE -> {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -133,20 +154,37 @@ private fun SurahGridTile(
                 }
             }
             DownloadState.DOWNLOADING -> {
-                Text(
-                    text = "${surah.number}",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TealPrimary
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "${surah.number}",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TealPrimary
+                    )
+                    if (percent != null) {
+                        Text(
+                            text = "$percent%",
+                            fontSize = 9.sp,
+                            color = TealPrimary
+                        )
+                    }
+                }
             }
             DownloadState.FAILED -> {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Retry",
-                    tint = ErrorRed,
-                    modifier = Modifier.padding(2.dp)
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "${surah.number}",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ErrorRed
+                    )
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Failed, tap to retry",
+                        tint = ErrorRed,
+                        modifier = Modifier.size(12.dp)
+                    )
+                }
             }
             DownloadState.NONE -> {
                 Text(

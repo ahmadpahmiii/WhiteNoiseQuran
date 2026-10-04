@@ -31,52 +31,35 @@ bundled loops are my own measurements [1].
 ## 2. TL;DR
 
 1. **Free: Steady Rain, Gentle Drizzle, Ocean Waves. Ad-unlocked: Lush Forest, Rain & Songbirds,
-   Night Train.** They score 12, 11 and 10 out of 12 on the rubric below, against 8, 7 and 6 [1].
-   Retire Night Train before launch and put **Kipas Angin** (electric fan) in its slot.
-2. **What spoils the match with recitation is tonality, rhythm and sudden events, not frequency
-   overlap.** With the bed 18 LU under the reciter, every bundled loop leaves a
-   speech-intelligibility
-   index (simplified SII) of 0.89–0.92, and train 0.99 [1][5]. The differences are elsewhere:
-    - forest is 78% tonal frames (a dense birdsong chorus);
-    - rain & birds has 5 calls more than 10 dB above the rain in every 57-s loop;
-    - train has a beat-like clatter every ~2 s (envelope autocorrelation 0.49) [1].
-3. **Default bed level: 18 LU under the recitation, and never above −10 LU while recitation plays.**
-    - Broadcast research recommends at least 15 LU between speech and ambience [7].
-    - Non-native listeners need 1–7 dB more [9], and most SEA listeners are non-native in Arabic.
-    - The bundled loops differ by 14 LU (−16.7 to −30.5 LUFS), and the app's per-sound defaults
-      (0.50–0.70) don't correct for that [1].
+   Night Train.** Rubric scores 12, 11, 10 against 8, 7, 6 (out of 12) [1]. Retire Night Train
+   before launch and give its slot to **Kipas Angin** (electric fan).
+2. **Tonality, rhythm and sudden events spoil the match, not frequency overlap.** At 18 LU under
+   the reciter every loop keeps a simplified SII of 0.89–0.92 (train 0.99) [1][5]. But forest is
+   78% tonal frames (dense birdsong), rain & birds has 5 calls >10 dB above the rain per 57-s loop,
+   and train clatters every ~2 s (envelope autocorrelation 0.49) [1].
+3. **Default bed: recitation −18 LU, never above −10 LU while recitation plays.** Broadcast
+   research wants ≥15 LU for ambience [7]; non-native listeners need 1–7 dB more [9]. The loops
+   differ by 14 LU (−16.7 to −30.5 LUFS), and the app's 0.50–0.70 defaults don't correct for it [1].
 4. **Sleep: no thunder claps, bird calls or clatter in loops.** Arousal follows the jump above the
-   background, not the absolute peak [13]; fast rise times and content above 3 kHz drive it [15].
-   Users ask for the same thing: "suara hujan **tanpa petir**" (without thunder) recurs in
-   Indonesian
-   and Malaysian autocomplete [30].
-5. **Add generated white, pink and brown noise (0 KB in the APK).** At equal loudness, brown masks
-   the
-   speech bands least (SII 0.99 at −18 LU), then pink (0.91) and white (0.90) [1]. "White noise
-   bayi" videos have 380M and 362M views [31]. Keep the REM caution: fade out rather than play all
-   night [17].
-6. **Top new recordings: Kipas Angin, Hujan di Atap Seng / atas zink, Air Terjun.** Later: Sungai,
-   Hujan di Hutan, Hujan di Genteng, Hujan di Tenda.
-    - Fan videos have 124.7M and 51.1M views, with "pengantar tidur / untuk bayi"
-      completions [31][30].
-    - Your own Indonesian field recordings beat any library for the fan and the tin roof.
-    - Freesound CC0 candidates are verified (§6). Pixabay, Mixkit, Zapsplat, Sonniss and BBC terms
-      all forbid or endanger use as the main content of a sound app [35]–[39].
-7. **Unlock = 7 days per sound per ad**, unlockable any time of day, never expiring mid-playback,
-   with
-   a free 30–60 s preview.
-    - Precedents: one app opens all sounds "until morning" per ad [54]; another unlocks premium for
-      3 days per video [55]. Per-play unlocks would force a bright, loud video at every bedtime.
-    - Mute the ads with `setAppMuted(true)`, accepting a smaller ad pool [44].
-    - Block the dating, sex, gambling, alcohol, get-rich-quick, social-casino, religion and politics
-      categories, and set the content rating to G [42][43][45].
-8. **Ads change the store and privacy picture:**
-    - the listing gets the "Contains ads" label [48];
-    - Data safety must declare what the Ads SDK collects and shares: IP-based approximate location,
-      app interactions, diagnostics and device IDs [47];
-    - the listing may say "Murottal tidak pernah disela iklan" (recitation is never interrupted by
-      ads), which is true [53];
-    - rewarded eCPM for Indonesia/Malaysia is **unverified**: no public primary figures were found.
+   background, not the peak [13]; fast rise and >3 kHz content drive it [15]. Users agree:
+   "suara hujan **tanpa petir**" (without thunder) recurs in ID and MY autocomplete [30].
+5. **Add generated white, pink and brown noise (0 KB in the APK).** At equal loudness brown masks
+   speech least (SII 0.99 at −18 LU), then pink 0.91 and white 0.90 [1]; "white noise bayi" videos
+   have 380M and 362M views [31]. Fade out rather than play all night (REM caution [17]).
+6. **Top new recordings: Kipas Angin, Hujan di Atap Seng / atas zink, Air Terjun**; later Sungai,
+   Hujan di Hutan, Hujan di Genteng, Hujan di Tenda. Fan videos have 124.7M and 51.1M views [31].
+   Record the fan and tin roof yourself; Freesound CC0 candidates are verified (§6). Pixabay,
+   Mixkit, Zapsplat, Sonniss and BBC terms forbid or endanger use as a sound app's main content
+   [35]–[39].
+7. **Unlock = 7 days per sound per ad**, any time of day, never expiring mid-playback, plus a free
+   30–60 s preview. Precedents: "until morning" per ad [54], 3 days per video [55]; per-play would
+   force a bright, loud video every bedtime. Mute ads with `setAppMuted(true)` (smaller ad pool)
+   [44]; block dating, sex, gambling, alcohol, get-rich-quick, social-casino, religion and politics
+   categories, and set content rating G [42][43][45].
+8. **Ads change the listing and privacy:** "Contains ads" label [48]; Data safety must declare the
+   Ads SDK's IP-based location, app interactions, diagnostics and device IDs [47]. "Murottal tidak
+   pernah disela iklan" (never interrupted by ads) is a true claim; "tanpa iklan" is not [53].
+   Rewarded eCPM for Indonesia/Malaysia is **unverified**.
 
 ---
 
@@ -391,19 +374,16 @@ Why: it's authentic, you own the copyright, and you can say "direkam di Indonesi
 
 ### 9a. AdMob rules that bind the design
 
-- **Before every ad:** clearly show what the user must do and what they get [40].
-    - Serve the ad only after an explicit opt-in tap.
-    - The user must be able to skip, and skipping mustn't hurt normal use: free sounds and all
-      recitation keep working.
-- **Delivery and rewards:** deliver the promised reward on completion; no cash-equivalent rewards
-  [40]. The reward is granted at the skip time, up to 30 s [41].
+- **Before every ad**, state what the user does and what they get, and serve it only after an
+  opt-in tap. Users must be able to skip without losing normal use: free sounds and all
+  recitation keep working [40].
+- **Rewards:** deliver the promised reward on completion; no cash-equivalent rewards [40]. The
+  reward is granted at the skip time, up to 30 s [41].
 - **Loading:** loaded rewarded ads **expire after one hour** [46], so load one only when the user
   opens a locked sound, not at app start.
-- **Format:** avoid "rewarded interstitial", which needs no tap to start. Use only standard opt-in
-  rewarded ads.
+- **Format:** standard opt-in rewarded ads only; avoid "rewarded interstitial" (no tap to start).
 - **Play Ads policy [50]:** opted-in rewarded ads are exempt from the ban on unexpected full-screen
-  ads; the lock screen may not be monetized (no ads on the lock screen or media notification); ads
-  must suit the app's content rating.
+  ads; no ads on the lock screen or media notification; ads must suit the app's content rating.
 
 ### 9b. Ad settings
 
@@ -417,23 +397,20 @@ Why: it's authentic, you own the copyright, and you can say "direkam di Indonesi
 
 ### 9c. Play Console, privacy and Families
 
-- **Ads declaration:** rewarded ads served through an ad SDK are ads. The listing then shows
-  "Contains ads", and misdeclaring can get the app suspended [48].
+- **Ads declaration:** SDK-served rewarded ads count as ads, so the listing shows "Contains ads";
+  misdeclaring can get the app suspended [48].
 - **Data safety:** the Google Mobile Ads SDK collects **and shares** IP address (approximate
-  location), app interactions (launches, taps, video views), diagnostics, and device and account IDs
-  (advertising ID, app set ID), for advertising, analytics and fraud prevention, encrypted in
-  transit
-  [47]. The earlier doc's "no data collected" no longer holds, and the app needs a privacy policy.
-- **Advertising ID:** apps targeting Android 13+ need the `AD_ID` permission. The Ads SDK merges it
-  in, and without it the ID reads as zeros [49]. Fill in the Play Console advertising-ID
-  declaration.
-  You can remove `AD_ID` to serve only non-personalized ads (judgment: likely lower revenue, but it
-  suits privacy-minded users; earlier doc §2a).
-- **Families** (only if the target audience includes children; see the baby pack in
-  `research_packs.md`): only self-certified ad SDKs (AdMob qualifies with `play-services-ads`
-  19.0.0+ [52]); no interest-based ads or remarketing to children; ads must suit children; rewarded
-  ads must be closeable after 5 s; mixed-audience apps need a neutral age screen [51].
-  **Recommendation:** set the target audience to adults (18+), and use no child-appealing artwork.
+  location), app interactions, diagnostics, and device/account IDs (advertising ID, app set ID),
+  for advertising, analytics and fraud prevention, encrypted in transit [47]. The earlier doc's
+  "no data collected" no longer holds, and the app needs a privacy policy.
+- **Advertising ID:** apps targeting Android 13+ need the `AD_ID` permission (the Ads SDK merges
+  it in); without it the ID reads as zeros [49]. Fill in the advertising-ID declaration. Removing
+  `AD_ID` means non-personalized ads only (judgment: lower revenue, more privacy; earlier doc §2a).
+- **Families** (only if the audience includes children; see the baby pack in `research_packs.md`):
+  only self-certified ad SDKs (AdMob qualifies with `play-services-ads` 19.0.0+ [52]); no
+  interest-based ads or remarketing to children; child-appropriate ads; rewarded ads closeable
+  after 5 s; a neutral age screen for mixed audiences [51]. **Recommendation:** target adults
+  (18+) and use no child-appealing artwork.
 
 ### 9d. Unlock duration
 
@@ -471,17 +448,15 @@ Other ad-unlock apps say only "watch ads" without a duration [56].
 - **Title, icon and developer name:** no price or promotion text (earlier doc §7).
 - **May say, in the description:**
     - "Murottal tidak pernah disela iklan" (recitation is never interrupted by ads);
-    - "Iklan hanya muncul jika Anda memilih menonton untuk membuka suara tambahan" (ads appear only
-      if
-      you choose to watch one to unlock an extra sound);
+  - "Iklan hanya muncul jika Anda memilih menonton untuk membuka suara tambahan"
+    (ads appear only if you choose to watch one to unlock an extra sound);
     - "Tidak ada iklan banner atau pop-up" (no banner or pop-up ads; true if that holds);
     - "Suara hujan tanpa petir" (rain without thunder);
     - Malay: "Bacaan al-Quran tidak pernah diganggu iklan";
     - English: "Recitation is never interrupted by ads."
-- **Must not say:**
-    - "tanpa iklan" or "bebas iklan" (ad-free; the app shows "Contains ads" [48]);
-    - "bikin tidur nyenyak", "terapi", "insomnia" (health claims; earlier doc §7);
-    - anonymous testimonials [53].
+- **Must not say:** "tanpa iklan" or "bebas iklan" (the app shows "Contains ads" [48]);
+  "bikin tidur nyenyak", "terapi", "insomnia" (health claims; earlier doc §7); anonymous
+  testimonials [53].
 - **Unlock prompt** (it must state the action and the reward [40]):
     - Indonesian: "Tonton 1 iklan singkat untuk membuka *Kipas Angin* selama 7 hari."
     - Malay: "Tonton 1 iklan pendek untuk membuka *Bunyi Kipas* selama 7 hari."
@@ -490,12 +465,11 @@ Other ad-unlock apps say only "watch ads" without a duration [56].
 ### 9g. eCPM
 
 - **Indonesia/Malaysia rewarded eCPM: unverified.** Appodeal, AnyMind, Tenjin and an Indonesian
-  search (4 attempts) give no public country figures. For scale only, the US games average for
-  rewarded ads was $30.25 in Q2 2024 (secondary [57]); SEA is expected to be far lower (unverified).
-- **Arithmetic:** one unlock is one impression, so revenue equals eCPM × unlocks ÷ 1,000.
-    - Example: 1,000 monthly users × 4 unlocks a month at a hypothetical $2 eCPM is about $8 a
-      month.
-    - Treat rewarded ads as "support", and read real fill and eCPM from AdMob after a soft launch.
+  search (4 attempts) gave no public country figures. For scale only: the US games average for
+  rewarded ads was $30.25 in Q2 2024 (secondary [57]); SEA is likely far lower (unverified).
+- **Arithmetic:** one unlock = one impression, so revenue = eCPM × unlocks ÷ 1,000. Example:
+  1,000 monthly users × 4 unlocks at a hypothetical $2 eCPM ≈ $8 a month. Treat rewarded ads as
+  "support", and read real fill and eCPM from AdMob after a soft launch.
 
 ---
 

@@ -1,12 +1,18 @@
 package com.whitenoisequran.service
 
 import android.content.Context
+import android.util.Log
+import androidx.annotation.OptIn
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.exoplayer.audio.DefaultAudioSink
 import com.whitenoisequran.data.isOnline
 import com.whitenoisequran.data.preferences.AppPreferences
 import com.whitenoisequran.data.remote.QuranMetadataRegistry
@@ -32,6 +38,7 @@ import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@OptIn(UnstableApi::class)
 @Singleton
 class AudioPlayerManager @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -41,10 +48,28 @@ class AudioPlayerManager @Inject constructor(
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
-    private val exoPlayer: ExoPlayer = ExoPlayer.Builder(context)
+    // Lets the sleep timer stop the recitation at a pause instead of mid-ayah
+    private val pauseDetector = RecitationPauseDetector()
+
+    private val exoPlayer: ExoPlayer =
+        ExoPlayer.Builder(context, object : DefaultRenderersFactory(context) {
+            override fun buildAudioSink(
+                context: Context,
+                enableFloatOutput: Boolean,
+                enableAudioTrackPlaybackParams: Boolean
+            ): AudioSink = DefaultAudioSink.Builder(context)
+                .setEnableFloatOutput(enableFloatOutput)
+                .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+                .setAudioProcessors(arrayOf(pauseDetector))
+                .build()
+        })
         .setWakeMode(C.WAKE_MODE_NETWORK) // keeps playing (and streaming) with the screen off
         .build()
     val player: ExoPlayer get() = exoPlayer
+
+    /** The sleep timer ran out and the recitation is playing on to its next pause. */
+    private var stoppingAtPause = false
+    private var stopFallbackJob: Job? = null
 
     private var progressTrackingJob: Job? = null
 
@@ -76,7 +101,6 @@ class AudioPlayerManager @Inject constructor(
     /** Surahs that failed to play, e.g. not downloaded while offline. */
     val playbackErrors: SharedFlow<Surah> = _playbackErrors.asSharedFlow()
 
-    private var globalSleepFadeMultiplier: Float = 1.0f
     private var playlist: List<Surah> = emptyList()
 
     init {
@@ -105,7 +129,8 @@ class AudioPlayerManager @Inject constructor(
                         _durationMs.value = duration
                     }
                 } else if (playbackState == Player.STATE_ENDED) {
-                    playNext()
+                    // The end of the surah is a natural stop for the sleep timer; otherwise go on
+                    if (stoppingAtPause) endTimerStop(resumeAtPause = false) else playNext()
                 }
             }
 
@@ -125,35 +150,96 @@ class AudioPlayerManager @Inject constructor(
     private fun setupSleepTimerCallbacks() {
         // Timer callbacks fire off the main thread; ExoPlayer must only be touched on main.
         sleepTimerController.setCallbacks(
-            onFinish = {
+            onQuranTimeUp = { scope.launch { stopAtNextPause() } },
+            onAmbientFade = { multiplier ->
                 scope.launch {
-                    pause()
-                    ambientSoundMixer.stopAll()
-                    applySleepFade(1.0f) // restore volume so the next playback isn't silent
+                    ambientSoundMixer.fadeVolumeMultiplier(
+                        multiplier
+                    )
                 }
             },
-            onFade = { multiplier -> scope.launch { applySleepFade(multiplier) } }
+            onAmbientFinished = {
+                scope.launch {
+                    ambientSoundMixer.stopAll()
+                    ambientSoundMixer.fadeVolumeMultiplier(1f) // so the next play isn't silent
+                }
+            },
+            onCancelled = {
+                scope.launch {
+                    cancelTimerStop()
+                    ambientSoundMixer.fadeVolumeMultiplier(1f)
+                }
+            }
         )
     }
 
-    private fun applySleepFade(multiplier: Float) {
-        globalSleepFadeMultiplier = multiplier
-        exoPlayer.volume = (_quranVolume.value * multiplier).coerceIn(0f, 1f)
-        ambientSoundMixer.fadeVolumeMultiplier(multiplier)
+    /** Sleep timer ran out: let the recitation reach the reciter's next pause, then stop. */
+    private fun stopAtNextPause() {
+        if (!exoPlayer.playWhenReady) {
+            sleepTimerController.quranStopped(ambientSoundMixer.isPlaying.value)
+            return
+        }
+        stoppingAtPause = true
+        pauseDetector.arm {
+            scope.launch {
+                stopFallbackJob?.cancel()
+                delay(MUTE_DRAIN_MS) // the ayah's end is already buffered; let it play out
+                endTimerStop(resumeAtPause = true)
+            }
+        }
+        // No pause found (e.g. crowd noise in a live recording): fade out over 2 s instead
+        stopFallbackJob = scope.launch {
+            delay(STOP_FALLBACK_MS)
+            repeat(20) { step ->
+                exoPlayer.volume = _quranVolume.value * (1f - (step + 1) / 20f)
+                delay(100)
+            }
+            endTimerStop(resumeAtPause = false)
+        }
+    }
+
+    private fun endTimerStop(resumeAtPause: Boolean) {
+        if (!stoppingAtPause) return
+        stoppingAtPause = false
+        stopFallbackJob?.cancel()
+        exoPlayer.pause()
+        _isPlaying.value = false
+        pauseDetector.disarm()
+        exoPlayer.volume = _quranVolume.value
+        // Playback ran on muted past the pause; step back so Play continues at it
+        if (resumeAtPause) exoPlayer.seekTo(
+            (exoPlayer.currentPosition - MUTE_DRAIN_MS).coerceAtLeast(
+                0
+            )
+        )
+        Log.d(
+            TAG,
+            "Sleep timer stopped the Quran at ${exoPlayer.currentPosition} ms (at a pause: $resumeAtPause)"
+        )
+        sleepTimerController.quranStopped(ambientSoundMixer.isPlaying.value)
+    }
+
+    /** The timer was cancelled while waiting for the pause: keep playing as normal. */
+    private fun cancelTimerStop() {
+        if (!stoppingAtPause) return
+        stoppingAtPause = false
+        stopFallbackJob?.cancel()
+        pauseDetector.disarm()
+        exoPlayer.volume = _quranVolume.value
     }
 
     private fun restoreQuranVolume() {
         scope.launch {
             val saved = appPreferences.quranVolumeFlow.first()
             _quranVolume.value = saved
-            exoPlayer.volume = (saved * globalSleepFadeMultiplier).coerceIn(0f, 1f)
+            exoPlayer.volume = saved
         }
     }
 
     fun setQuranVolume(volume: Float) {
         val clamped = volume.coerceIn(0f, 1f)
         _quranVolume.value = clamped
-        exoPlayer.volume = (clamped * globalSleepFadeMultiplier).coerceIn(0f, 1f)
+        exoPlayer.volume = clamped
         scope.launch { appPreferences.setQuranVolume(clamped) }
     }
 
@@ -190,6 +276,11 @@ class AudioPlayerManager @Inject constructor(
     }
 
     fun playSurah(surah: Surah, reciter: Reciter? = _currentReciter.value) {
+        // Picking a surah while the timer waits for a pause means the listener is awake: drop the timer
+        if (stoppingAtPause) {
+            cancelTimerStop()
+            sleepTimerController.cancelTimer()
+        }
         _currentSurah.value = surah
         if (reciter != null) _currentReciter.value = reciter
 
@@ -250,6 +341,10 @@ class AudioPlayerManager @Inject constructor(
     }
 
     fun pause() {
+        if (stoppingAtPause) { // paused while the timer waited for a pause: that's the stop
+            endTimerStop(resumeAtPause = false)
+            return
+        }
         exoPlayer.pause()
         _isPlaying.value = false
     }
@@ -321,5 +416,13 @@ class AudioPlayerManager @Inject constructor(
         stopProgressTracker()
         exoPlayer.release()
         ambientSoundMixer.release()
+    }
+
+    private companion object {
+        const val TAG = "AudioPlayerManager"
+
+        // Longer than the audio already buffered after the pause detector (≤ 0.75 s by default)
+        const val MUTE_DRAIN_MS = 1_000L
+        const val STOP_FALLBACK_MS = 60_000L
     }
 }

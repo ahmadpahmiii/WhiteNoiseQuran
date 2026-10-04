@@ -1,5 +1,6 @@
 package com.whitenoisequran.ui.onboarding
 
+import android.text.format.Formatter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,16 +17,20 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Nightlight
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -48,9 +53,11 @@ import com.whitenoisequran.ui.theme.TextSecondary
 @Composable
 fun OnboardingScreen(
     onNavigateToDownload: (reciterId: Int) -> Unit,
+    onNavigateToMain: () -> Unit,
     viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val downloadPrompt by viewModel.downloadPrompt.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = BackgroundNavy
@@ -142,11 +149,7 @@ fun OnboardingScreen(
                     .padding(horizontal = 20.dp, vertical = 18.dp)
             ) {
                 Button(
-                    onClick = {
-                        viewModel.completeOnboarding { reciterId ->
-                            onNavigateToDownload(reciterId)
-                        }
-                    },
+                    onClick = { viewModel.completeOnboarding() },
                     enabled = uiState.selectedReciter != null,
                     shape = RoundedCornerShape(26.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -167,10 +170,56 @@ fun OnboardingScreen(
                 ) {
                     Text(
                         text = stringResource(R.string.continue_btn),
-                        style = AppTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                        // Unspecified: follow the button's content color (the theme style would force white on gold)
+                        style = AppTheme.typography.labelLarge.copy(
+                            fontSize = 16.sp,
+                            color = Color.Unspecified
+                        ),
                         fontWeight = FontWeight.Bold
                     )
                 }
+            }
+
+            // A full reciter is gigabytes: ask first, and let people listen online right away instead
+            downloadPrompt?.let { prompt ->
+                val context = LocalContext.current
+                AlertDialog(
+                    onDismissRequest = { viewModel.dismissDownloadPrompt() },
+                    title = { Text(stringResource(R.string.download_all_title)) },
+                    text = {
+                        Text(
+                            listOfNotNull(
+                                prompt.bytes?.let {
+                                    stringResource(
+                                        R.string.download_size_about,
+                                        Formatter.formatShortFileSize(context, it)
+                                    )
+                                },
+                                stringResource(R.string.download_wifi_note),
+                                stringResource(R.string.download_or_stream)
+                            ).joinToString(" ")
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            viewModel.dismissDownloadPrompt()
+                            onNavigateToDownload(prompt.reciterId) // the download screen starts it
+                        }) {
+                            Text(stringResource(R.string.download), color = GoldPrimary)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            viewModel.dismissDownloadPrompt()
+                            onNavigateToMain()
+                        }) {
+                            Text(stringResource(R.string.download_later), color = TextSecondary)
+                        }
+                    },
+                    containerColor = SurfaceDark,
+                    titleContentColor = TextPrimary,
+                    textContentColor = TextSecondary
+                )
             }
         }
     }

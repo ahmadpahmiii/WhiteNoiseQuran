@@ -20,8 +20,6 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import androidx.navigation.compose.rememberNavController
 import com.whitenoisequran.data.preferences.AppPreferences
-import com.whitenoisequran.service.AmbientSoundMixer
-import com.whitenoisequran.service.AudioPlayerManager
 import com.whitenoisequran.ui.navigation.AppNavHost
 import com.whitenoisequran.ui.navigation.Screen
 import com.whitenoisequran.ui.theme.BackgroundNavy
@@ -35,12 +33,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var appPreferences: AppPreferences
-
-    @Inject
-    lateinit var audioPlayerManager: AudioPlayerManager
-
-    @Inject
-    lateinit var ambientSoundMixer: AmbientSoundMixer
 
     companion object {
         /** Set by download notifications: open the download screen for this reciter id. */
@@ -111,14 +103,7 @@ class MainActivity : ComponentActivity() {
         intent.openDownloadsReciterId()?.let { openDownloadsFor = it }
     }
 
+    // Leaving the screen (Back) doesn't stop the sound: the playback service and its notification carry on.
     private fun Intent.openDownloadsReciterId() =
         getIntExtra(EXTRA_OPEN_DOWNLOADS_FOR_RECITER, -1).takeIf { it != -1 }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        if (isFinishing) {
-            audioPlayerManager.pause()
-            ambientSoundMixer.stopAll()
-        }
-    }
 }

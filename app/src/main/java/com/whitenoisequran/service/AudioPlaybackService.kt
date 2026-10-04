@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import androidx.annotation.OptIn
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
@@ -69,8 +68,12 @@ class AudioPlaybackService : MediaSessionService() {
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
         )
 
-        val session = MediaSession.Builder(this, audioPlayerManager.player)
+        // Rain alone counts as playing for the session: Media3 keeps the service in the foreground
+        // (or Android stops the rain in the night) and its controls can pause it
+        val sessionPlayer = SessionPlayer(audioPlayerManager.player, ambientSoundMixer)
+        val session = MediaSession.Builder(this, sessionPlayer)
             .setSessionActivity(sessionActivityPendingIntent)
+            .setShowPlayButtonIfPlaybackIsSuppressed(false)
             .build()
         mediaSession = session
         // Nothing binds a controller to this service, so without this Media3 never shows the
@@ -79,32 +82,12 @@ class AudioPlaybackService : MediaSessionService() {
 
         scope.launch {
             ambientSoundMixer.isPlaying.collect { ambientPlaying ->
-                // The notification shows the surah, so rain alone loads it paused; loading refreshes it.
+                // The notification shows the surah, so rain alone loads it paused.
                 // ponytail: offline with the current surah not downloaded there's nothing to load, so rain
                 // alone isn't kept in the foreground; give the mix its own MediaSession if that matters.
-                if (ambientPlaying && audioPlayerManager.loadCurrentSurah()) return@collect
-                refreshNotification(session)
+                if (ambientPlaying) audioPlayerManager.loadCurrentSurah()
+                sessionPlayer.refresh()
             }
-        }
-    }
-
-    // Media3 keeps the service in the foreground only while the Quran plays; the ambient mix
-    // playing alone has to count too, or Android stops the rain in the night.
-    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
-        super.onUpdateNotification(
-            session,
-            startInForegroundRequired || ambientSoundMixer.isPlaying.value
-        )
-    }
-
-    private fun refreshNotification(session: MediaSession) {
-        val player = session.player
-        val quranPlaying = player.playWhenReady &&
-                (player.playbackState == Player.STATE_READY || player.playbackState == Player.STATE_BUFFERING)
-        try {
-            onUpdateNotification(session, quranPlaying)
-        } catch (e: IllegalStateException) { // ForegroundServiceStartNotAllowedException (API 31+)
-            e.printStackTrace()
         }
     }
 

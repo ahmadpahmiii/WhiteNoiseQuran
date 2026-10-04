@@ -12,6 +12,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -49,6 +51,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.whitenoisequran.R
+import com.whitenoisequran.service.SleepTimerController
 import com.whitenoisequran.ui.theme.AppTheme
 import com.whitenoisequran.ui.theme.CardDark
 import com.whitenoisequran.ui.theme.ErrorRed
@@ -61,17 +64,20 @@ import com.whitenoisequran.ui.theme.TextMuted
 import com.whitenoisequran.ui.theme.TextPrimary
 import com.whitenoisequran.ui.theme.TextSecondary
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SleepTimerSheet(
-    isTimerActive: Boolean,
+    phase: SleepTimerController.Phase,
     remainingFormatted: String?,
-    onSetTimer: (Int) -> Unit,
+    /** Last choice for how long the ambient mix plays on after the Quran stops. */
+    initialAmbientAfterMinutes: Int,
+    onSetTimer: (minutes: Int, ambientAfterMinutes: Int) -> Unit,
     onCancelTimer: () -> Unit,
     onDismiss: () -> Unit,
     sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 ) {
     var selectedMinutes by remember { mutableIntStateOf(45) }
+    var ambientAfter by remember { mutableIntStateOf(initialAmbientAfterMinutes) }
     val presets = listOf(15, 30, 45, 60, 90)
 
     val infiniteTransition = rememberInfiniteTransition(label = "timer_pulse")
@@ -140,8 +146,8 @@ fun SleepTimerSheet(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Active Timer Countdown Banner (if active)
-            if (isTimerActive && remainingFormatted != null) {
+            // Active Timer Countdown Banner (if active): the Quran's step, then the ambient's
+            if (phase != SleepTimerController.Phase.OFF) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -156,6 +162,7 @@ fun SleepTimerSheet(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
+                            modifier = Modifier.weight(1f),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
@@ -166,7 +173,19 @@ fun SleepTimerSheet(
                                     .background(TealPrimary.copy(alpha = pulseAlpha))
                             )
                             Text(
-                                text = stringResource(R.string.stops_in, remainingFormatted),
+                                text = when (phase) {
+                                    SleepTimerController.Phase.QURAN ->
+                                        stringResource(
+                                            R.string.quran_stops_in,
+                                            remainingFormatted.orEmpty()
+                                        )
+
+                                    SleepTimerController.Phase.STOPPING_QURAN -> stringResource(R.string.quran_stopping)
+                                    else -> stringResource(
+                                        R.string.ambient_stops_in,
+                                        remainingFormatted.orEmpty()
+                                    )
+                                },
                                 style = AppTheme.typography.titleMedium,
                                 color = TealLight
                             )
@@ -275,12 +294,55 @@ fun SleepTimerSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // How long the ambient mix plays on after the Quran stops at its pause
+            Text(
+                text = stringResource(R.string.ambient_after_label),
+                style = AppTheme.typography.labelMedium,
+                color = TextSecondary,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                listOf(0, 15, 30, 60, SleepTimerController.AMBIENT_ALL_NIGHT).forEach { option ->
+                    val isSelected = ambientAfter == option
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(if (isSelected) TealPrimary.copy(alpha = 0.2f) else CardDark)
+                            .border(
+                                width = 1.dp,
+                                color = if (isSelected) TealPrimary else Color.White.copy(alpha = 0.08f),
+                                shape = RoundedCornerShape(14.dp)
+                            )
+                            .clickable { ambientAfter = option }
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = when (option) {
+                                0 -> stringResource(R.string.ambient_after_off)
+                                SleepTimerController.AMBIENT_ALL_NIGHT -> stringResource(R.string.ambient_after_all_night)
+                                else -> "+${option}m"
+                            },
+                            style = AppTheme.typography.labelMedium,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) TealLight else TextPrimary
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Set Timer CTA
             Button(
                 onClick = {
-                    onSetTimer(selectedMinutes)
+                    onSetTimer(selectedMinutes, ambientAfter)
                     onDismiss()
                 },
                 shape = RoundedCornerShape(26.dp),
@@ -294,7 +356,11 @@ fun SleepTimerSheet(
             ) {
                 Text(
                     text = stringResource(R.string.set_timer, selectedMinutes),
-                    style = AppTheme.typography.labelLarge.copy(fontSize = 16.sp),
+                    // Unspecified: follow the button's content color (the theme style would force white on gold)
+                    style = AppTheme.typography.labelLarge.copy(
+                        fontSize = 16.sp,
+                        color = Color.Unspecified
+                    ),
                     fontWeight = FontWeight.Bold
                 )
             }

@@ -15,9 +15,7 @@
     <string name="cd_change_reciter">Tukar qari</string>
     <string name="surah_info">%1$s · Surah %2$d · %3$d Ayat</string>
     <string name="delete_all_title">Padam audio yang dimuat turun?</string>
-    <plurals name="delete_all_body">
-        <item quantity="other">Memadam %1$d surah (%2$s) bagi %3$s.</item>
-    </plurals>
+    <string name="delete_all_body">Mengosongkan %1$s dengan memadam semua audio %2$s yang telah dimuat turun, termasuk muat turun yang belum selesai.</string>
     <string name="delete_all_running">Muat turun yang sedang berjalan akan berhenti.</string>
     <string name="delete_all_later">Surah boleh distrim atau dimuat turun semula kemudian.</string>
     <string name="this_reciter">qari ini</string>
@@ -27,6 +25,8 @@
     </plurals>
     <string name="download_size_about">Kira-kira %1$s.</string>
     <string name="download_wifi_note">Disyorkan guna Wi-Fi. Surah yang dimuat turun boleh dimainkan tanpa internet.</string>
+    <string name="download_later">Lain kali</string>
+    <string name="download_or_stream">Atau dengar sekarang dalam talian, kemudian muat turun bila-bila masa dari Senarai Surah.</string>
     <string name="msg_play_failed_downloaded">Tidak dapat memainkan %1$s. Padam dan muat turun semula.</string>
     <string name="msg_play_failed_not_downloaded">%1$s belum dimuat turun. Sambung ke internet untuk menstrimnya.</string>
     <string name="msg_download_paused_for_reciter">Muat turun %1$s dijeda. Pilih semula qari ini untuk menyambungnya.</string>
@@ -41,7 +41,12 @@
     <string name="timer">Pemasa</string>
 
     <!-- Sleep timer sheet -->
-    <string name="stops_in">Berhenti dalam %1$s</string>
+    <string name="quran_stops_in">Al-Quran berhenti dalam %1$s</string>
+    <string name="quran_stopping">Al-Quran berhenti pada jeda bacaan seterusnya…</string>
+    <string name="ambient_stops_in">Bunyi latar berhenti dalam %1$s</string>
+    <string name="ambient_after_label">Bunyi latar selepas al-Quran berhenti</string>
+    <string name="ambient_after_off">Turut berhenti</string>
+    <string name="ambient_after_all_night">Sepanjang malam</string>
     <string name="cancel_timer">Batalkan Pemasa</string>
     <string name="cd_decrease">Kurangkan</string>
     <string name="cd_increase">Tambah</string>

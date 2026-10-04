@@ -195,7 +195,17 @@ class MainViewModel @Inject constructor(
                 }
             }
         }
+
+        viewModelScope.launch {
+            audioPlayerManager.sleepTimerController.phase.collect { phase ->
+                _uiState.update { it.copy(sleepTimerPhase = phase) }
+            }
+        }
     }
+
+    /** The sleep sheet starts from the last choice of ambient minutes after the Quran. */
+    val sleepAmbientAfterMinutes: Int
+        get() = audioPlayerManager.sleepTimerController.ambientAfterMinutes
 
     fun onPlayPause() {
         audioPlayerManager.togglePlayPause()
@@ -331,8 +341,8 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun onSetSleepTimer(minutes: Int) {
-        audioPlayerManager.sleepTimerController.startTimer(minutes)
+    fun onSetSleepTimer(minutes: Int, ambientAfterMinutes: Int) {
+        audioPlayerManager.sleepTimerController.startTimer(minutes, ambientAfterMinutes)
     }
 
     fun onCancelSleepTimer() {

@@ -4,11 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.whitenoisequran.data.preferences.AppPreferences
 import com.whitenoisequran.domain.model.Reciter
+import com.whitenoisequran.domain.repository.DownloadRepository
 import com.whitenoisequran.domain.repository.QuranRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -23,6 +25,7 @@ data class OnboardingUiState(
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val quranRepository: QuranRepository,
+    private val downloadRepository: DownloadRepository,
     private val appPreferences: AppPreferences
 ) : ViewModel() {
 
@@ -58,12 +61,31 @@ class OnboardingViewModel @Inject constructor(
         _selectedReciter.value = reciter
     }
 
-    fun completeOnboarding(onSuccess: (reciterId: Int) -> Unit) {
+    private val _downloadPrompt = MutableStateFlow<DownloadPrompt?>(null)
+
+    /** After Continue: download the whole Quran now (gigabytes) or listen online first. */
+    val downloadPrompt: StateFlow<DownloadPrompt?> = _downloadPrompt.asStateFlow()
+
+    fun completeOnboarding() {
         val selected = uiState.value.selectedReciter ?: return
         viewModelScope.launch {
             quranRepository.setSelectedReciter(selected)
             appPreferences.setOnboardingCompleted(true)
-            onSuccess(selected.id)
+            _downloadPrompt.value =
+                DownloadPrompt(
+                    selected.id,
+                    downloadRepository.getRemainingDownloadBytes(selected.slug)
+                )
         }
     }
+
+    fun dismissDownloadPrompt() {
+        _downloadPrompt.value = null
+    }
 }
+
+data class DownloadPrompt(
+    val reciterId: Int,
+    /** Estimated size; null when unknown. */
+    val bytes: Long?
+)

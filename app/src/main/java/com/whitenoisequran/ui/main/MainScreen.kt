@@ -49,7 +49,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.whitenoisequran.R
-import com.whitenoisequran.domain.model.DownloadState
 import com.whitenoisequran.ui.components.AmbientMixerSection
 import com.whitenoisequran.ui.components.IslamicBackgroundPattern
 import com.whitenoisequran.ui.components.PlayerArtwork
@@ -344,18 +343,15 @@ fun MainScreen(
 
             uiState.deleteAllConfirmBytes?.let { bytes ->
                 val context = LocalContext.current
-                val downloadedCount =
-                    uiState.surahs.count { it.downloadState == DownloadState.DONE }
                 AlertDialog(
                     onDismissRequest = { viewModel.dismissDeleteAllAudio() },
                     title = { Text(stringResource(R.string.delete_all_title)) },
                     text = {
                         Text(
                             listOfNotNull(
-                                pluralStringResource(
-                                    R.plurals.delete_all_body,
-                                    downloadedCount,
-                                    downloadedCount,
+                                // The size includes partly downloaded files, so it isn't tied to a surah count
+                                stringResource(
+                                    R.string.delete_all_body,
                                     Formatter.formatShortFileSize(context, bytes),
                                     uiState.currentReciter?.name
                                         ?: stringResource(R.string.this_reciter)
@@ -433,9 +429,15 @@ fun MainScreen(
             // Sleep Timer Bottom Sheet Modal
             if (uiState.isSleepTimerSheetOpen) {
                 SleepTimerSheet(
-                    isTimerActive = uiState.isSleepTimerActive,
+                    phase = uiState.sleepTimerPhase,
                     remainingFormatted = uiState.sleepTimerRemainingText,
-                    onSetTimer = { mins -> viewModel.onSetSleepTimer(mins) },
+                    initialAmbientAfterMinutes = viewModel.sleepAmbientAfterMinutes,
+                    onSetTimer = { mins, ambientAfter ->
+                        viewModel.onSetSleepTimer(
+                            mins,
+                            ambientAfter
+                        )
+                    },
                     onCancelTimer = { viewModel.onCancelSleepTimer() },
                     onDismiss = { viewModel.closeSleepTimerSheet() }
                 )

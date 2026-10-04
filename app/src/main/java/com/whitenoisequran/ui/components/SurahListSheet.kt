@@ -331,7 +331,13 @@ fun SurahListSheet(
                         FilterChip(
                             selected = selected,
                             onClick = { downloadedOnly = onlyDownloaded },
-                            label = { Text(text = label, style = AppTheme.typography.labelSmall) },
+                            // Unspecified: follow the chip's (selected) label color
+                            label = {
+                                Text(
+                                    text = label,
+                                    style = AppTheme.typography.labelSmall.copy(color = Color.Unspecified)
+                                )
+                            },
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = Color.Transparent,
                                 labelColor = TextSecondary,

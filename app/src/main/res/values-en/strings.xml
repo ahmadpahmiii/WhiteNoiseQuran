@@ -15,10 +15,7 @@
     <string name="cd_change_reciter">Change reciter</string>
     <string name="surah_info">%1$s · Surah %2$d · %3$d Verses</string>
     <string name="delete_all_title">Delete downloaded audio?</string>
-    <plurals name="delete_all_body">
-        <item quantity="one">Removes %1$d surah (%2$s) of %3$s.</item>
-        <item quantity="other">Removes %1$d surahs (%2$s) of %3$s.</item>
-    </plurals>
+    <string name="delete_all_body">Frees %1$s by deleting all downloaded audio of %2$s, including unfinished downloads.</string>
     <string name="delete_all_running">The running download stops.</string>
     <string name="delete_all_later">You can stream or download them again later.</string>
     <string name="this_reciter">this reciter</string>
@@ -29,6 +26,8 @@
     </plurals>
     <string name="download_size_about">About %1$s.</string>
     <string name="download_wifi_note">Wi-Fi recommended. Downloaded surahs play without internet.</string>
+    <string name="download_later">Later</string>
+    <string name="download_or_stream">Or listen online now, and download any time from the Surah Index.</string>
     <string name="msg_play_failed_downloaded">Couldn\'t play %1$s. Delete and download it again.</string>
     <string name="msg_play_failed_not_downloaded">%1$s isn\'t downloaded. Connect to the internet to stream it.</string>
     <string name="msg_download_paused_for_reciter">Paused the download for %1$s. Switch back to resume it.</string>
@@ -43,7 +42,12 @@
     <string name="timer">Timer</string>
 
     <!-- Sleep timer sheet -->
-    <string name="stops_in">Stops in %1$s</string>
+    <string name="quran_stops_in">Quran stops in %1$s</string>
+    <string name="quran_stopping">The Quran stops at the next pause…</string>
+    <string name="ambient_stops_in">Ambient stops in %1$s</string>
+    <string name="ambient_after_label">Ambient sound after the Quran stops</string>
+    <string name="ambient_after_off">Stop too</string>
+    <string name="ambient_after_all_night">All night</string>
     <string name="cancel_timer">Cancel Timer</string>
     <string name="cd_decrease">Decrease</string>
     <string name="cd_increase">Increase</string>
@@ -51,7 +55,7 @@
     <string name="set_timer">Set Timer (%1$d min)</string>
 
     <!-- Ambient mixer -->
-    <string name="ambient_title">Ambient Soundscape</string>
+    <string name="ambient_title">Ambient Sounds</string>
     <plurals name="ambient_sound_count">
         <item quantity="one">%1$d sound</item>
         <item quantity="other">%1$d sounds</item>

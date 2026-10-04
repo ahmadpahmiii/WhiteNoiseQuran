@@ -27,6 +27,12 @@ fun AppNavHost(
             OnboardingScreen(
                 onNavigateToDownload = { reciterId ->
                     navController.navigate(Screen.Download.createRoute(reciterId))
+                },
+                // "Later": listen online now; the Surah Index offers the download any time
+                onNavigateToMain = {
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(navController.graph.id) { inclusive = true }
+                    }
                 }
             )
         }

@@ -27,6 +27,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.whitenoisequran.R
@@ -63,7 +64,9 @@ fun AmbientMixerSection(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // On narrow screens the title gives way (ellipsis) so the chip and Reset stay on one line
             Row(
+                modifier = Modifier.weight(1f),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
@@ -76,7 +79,10 @@ fun AmbientMixerSection(
                 Text(
                     text = stringResource(R.string.ambient_title),
                     style = AppTheme.typography.headlineMedium,
-                    color = GoldPrimary
+                    color = GoldPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
 
                 // Play/pause for the whole mix, which can play without the Quran
@@ -120,7 +126,8 @@ fun AmbientMixerSection(
                     Text(
                         text = stringResource(R.string.reset_all),
                         style = AppTheme.typography.labelMedium,
-                        color = TextSecondary
+                        color = TextSecondary,
+                        maxLines = 1
                     )
                 }
             }

@@ -4,6 +4,7 @@ import com.whitenoisequran.domain.model.AmbientSound
 import com.whitenoisequran.domain.model.BulkDownloadProgress
 import com.whitenoisequran.domain.model.Reciter
 import com.whitenoisequran.domain.model.Surah
+import com.whitenoisequran.service.SleepTimerController
 
 data class MainUiState(
     val currentSurah: Surah? = null,
@@ -19,6 +20,7 @@ data class MainUiState(
     val playbackDurationMs: Long = 1L,
     val sleepTimerRemainingText: String? = null,
     val isSleepTimerActive: Boolean = false,
+    val sleepTimerPhase: SleepTimerController.Phase = SleepTimerController.Phase.OFF,
     val isSurahSheetOpen: Boolean = false,
     val isSleepTimerSheetOpen: Boolean = false,
     val isReciterSheetOpen: Boolean = false,
